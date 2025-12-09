@@ -17,7 +17,7 @@ import spock.lang.Specification
  */
 class Level1SignPostingValidatorSpec extends Specification {
 
-    def validator = new Level1SignPostingValidator()
+    def validator = Level1SignPostingValidator.create()
 
     // --- Happy paths -------------------------------------------------------
 
