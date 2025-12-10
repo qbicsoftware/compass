@@ -33,15 +33,16 @@ public class Level1SignPostingValidator implements SignPostingValidator {
     // 3. the "describedBy" relation
     validateDescribedBy(webLinks, issues);
 
-    validateUnsafeHttp(webLinks, issues);
+    // 4. report any unsecure http-only link and links that are not using the http scheme
+    validateSecureHttp(webLinks, issues);
 
     return new SignPostingResult(new SignPostingView(webLinks), new IssueReport(issues));
   }
 
-  private void validateUnsafeHttp(List<WebLink> webLinks, List<Issue> issues) {
-    var unsafeLinks = webLinks.stream().filter(Level1SignPostingValidator::hasUnsafeHttp).toList();
+  private void validateSecureHttp(List<WebLink> webLinks, List<Issue> issues) {
+    var unsafeLinks = webLinks.stream().filter(Level1SignPostingValidator::hasInsecureOrNoneHttp).toList();
     for (WebLink link : unsafeLinks) {
-      issues.add(Issue.warning("Unsafe HTTP target found for relation type '%s': '%s'".formatted(
+      issues.add(Issue.warning("Non-https link target found for relation type '%s': '%s'".formatted(
           link.rel(), link.reference())));
     }
   }
@@ -57,7 +58,7 @@ public class Level1SignPostingValidator implements SignPostingValidator {
       return;
     }
 
-    validateUnsafeHttp(
+    validateSecureHttp(
         webLinks.stream()
             .filter(Level1SignPostingValidator::hasCiteAs)
             .toList(),
@@ -93,7 +94,11 @@ public class Level1SignPostingValidator implements SignPostingValidator {
     return hasAny(webLink, "describedby");
   }
 
-  private static boolean hasUnsafeHttp(WebLink webLink) {
-    return !webLink.reference().getScheme().equalsIgnoreCase("http");
+  private static boolean hasInsecureOrNoneHttp(WebLink webLink) {
+    return !hasSecureHttp(webLink);
+  }
+
+  private static boolean hasSecureHttp(WebLink webLink) {
+    return webLink.reference().getScheme().equalsIgnoreCase("https");
   }
 }
