@@ -43,7 +43,7 @@ public class Level1SignPostingValidator implements SignPostingValidator {
     var unsafeLinks = webLinks.stream().filter(Level1SignPostingValidator::hasInsecureOrNoneHttp).toList();
     for (WebLink link : unsafeLinks) {
       issues.add(Issue.warning("Non-https link target found for relation type '%s': '%s'".formatted(
-          link.rel(), link.reference())));
+          link.rel(), link.target())));
     }
   }
 
@@ -99,6 +99,6 @@ public class Level1SignPostingValidator implements SignPostingValidator {
   }
 
   private static boolean hasSecureHttp(WebLink webLink) {
-    return webLink.reference().getScheme().equalsIgnoreCase("https");
+    return webLink.target().getScheme().equalsIgnoreCase("https");
   }
 }
