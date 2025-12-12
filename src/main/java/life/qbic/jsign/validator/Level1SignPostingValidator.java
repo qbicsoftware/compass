@@ -7,9 +7,58 @@ import life.qbic.linksmith.spi.WebLinkValidator.Issue;
 import life.qbic.linksmith.spi.WebLinkValidator.IssueReport;
 
 /**
- * <class short description>
+ * Signposting validator for <strong>Level&nbsp;1</strong> of the FAIR Signposting profile.
+ * <p>
+ * Level&nbsp;1 Signposting describes the <em>minimal, inline</em> set of typed links that a
+ * scholarly object should expose to enable reliable discovery, citation, attribution,
+ * and access to descriptive metadata. These links are typically provided via HTTP
+ * {@code Link} headers or HTML {@code <link>} elements and are directly attached to the
+ * resource itself.
+ * </p>
  *
- * @since <version tag>
+ * <p>
+ * This validator operates on a list of already parsed {@link WebLink}s and performs
+ * structural and semantic checks according to the Level&nbsp;1 FAIR Signposting
+ * recommendations:
+ * </p>
+ *
+ * <ul>
+ *   <li>
+ *     <strong>{@code rel="author"}</strong> – recommended; a warning is raised if no author
+ *     relation is present (cardinality 0..n).
+ *   </li>
+ *   <li>
+ *     <strong>{@code rel="cite-as"}</strong> – mandatory; exactly one occurrence is expected,
+ *     and an error is raised if missing or duplicated.
+ *   </li>
+ *   <li>
+ *     <strong>{@code rel="describedby"}</strong> – mandatory; at least one occurrence is required
+ *     to point to metadata describing the resource.
+ *   </li>
+ *   <li>
+ *     <strong>Target URI scheme</strong> – all link targets are checked for secure transport;
+ *     non-HTTPS or non-HTTP targets result in warnings.
+ *   </li>
+ * </ul>
+ *
+ * <p>
+ * The validator is intentionally <strong>non-fatal</strong> where possible: it collects
+ * errors and warnings for all detected issues instead of aborting on the first violation.
+ * </p>
+ *
+ * <p>
+ * This class does <strong>not</strong> dereference links, verify identifier persistence,
+ * or validate the contents of metadata resources. Its responsibility is limited to
+ * validating the presence, cardinality, and basic properties of Level&nbsp;1 Signposting
+ * relations as they appear in the provided WebLinks.
+ * </p>
+ *
+ * <p>
+ * The resulting {@link SignPostingView} is a semantic convenience wrapper around the
+ * original WebLinks; no links are filtered or modified during validation.
+ * </p>
+ *
+ * @author Sven Fillinger
  */
 public class Level1SignPostingValidator implements SignPostingValidator {
 

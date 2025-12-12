@@ -15,15 +15,15 @@ import life.qbic.linksmith.spi.WebLinkValidator.IssueReport;
  * {@code <link>} elements (e.g. {@code rel="cite-as"}, {@code rel="describedby"},
  * {@code rel="item"}).
  * <br>
- * Level&nbsp;2 Signposting, in contrast, exposes (the same and additional) typed
- * links <em>by reference</em> through a separate <em>Linkset</em> resource, which
- * is advertised from the object using {@code rel="linkset"} and a dedicated
- * media type such as {@code application/linkset} or {@code application/linkset+json}.
+ * Level&nbsp;2 Signposting, in contrast, exposes (the same and additional) typed links <em>by
+ * reference</em> through a separate <em>Linkset</em> resource, which is advertised from the object
+ * using {@code rel="linkset"} and a dedicated media type such as {@code application/linkset} or
+ * {@code application/linkset+json}.
  * </p>
  *
  * <p>
- * This validator focuses <strong>only on discovering</strong> Level&nbsp;2
- * Linkset resources in an already parsed set of {@link WebLink}s. It:
+ * This validator focuses <strong>only on discovering</strong> Level&nbsp;2 Linkset resources in an
+ * already parsed set of {@link WebLink}s. It:
  * </p>
  * <ul>
  *   <li>looks for links with {@code rel="linkset"},</li>
@@ -64,6 +64,11 @@ public class Level2DiscoveryValidator implements SignPostingValidator {
   private Level2DiscoveryValidator() {
   }
 
+  /**
+   * Creates a new instance of a Level 2 LinkSet discovery validator
+   *
+   * @return a new object instance of the validator
+   */
   public static Level2DiscoveryValidator create() {
     return new Level2DiscoveryValidator();
   }

@@ -6,9 +6,51 @@ import java.util.Objects;
 import life.qbic.linksmith.model.WebLink;
 
 /**
- * <class short description>
+ * A semantic, read-only view over a collection of {@link WebLink}s that provides
+ * convenient accessors for Signposting-related link relations.
  *
- * @since <version tag>
+ * <p>
+ * {@code SignPostingView} does not perform validation itself. Instead, it assumes
+ * that the supplied WebLinks have already been processed by one or more
+ * {@link SignPostingValidator}s and offers a profile-oriented API to inspect the
+ * resulting links.
+ * </p>
+ *
+ * <p>
+ * The view is intentionally <strong>non-destructive</strong>:
+ * </p>
+ * <ul>
+ *   <li>All WebLinks supplied to the constructor are retained.</li>
+ *   <li>No links are added, removed, or modified.</li>
+ *   <li>Validation issues are reported separately via {@link SignPostingResult}.</li>
+ * </ul>
+ *
+ * <p>
+ * This design allows clients to:
+ * </p>
+ * <ul>
+ *   <li>inspect Signposting relations even in the presence of validation errors,</li>
+ *   <li>apply multiple Signposting profiles to the same set of WebLinks, and</li>
+ *   <li>defer profile-specific decisions (e.g. dereferencing linksets) to later stages.</li>
+ * </ul>
+ *
+ * <p>
+ * The view supports both:
+ * </p>
+ * <ul>
+ *   <li><strong>Level&nbsp;1 Signposting</strong>, where typed links are provided inline
+ *       via HTTP {@code Link} headers, and</li>
+ *   <li><strong>Level&nbsp;2 Signposting discovery</strong>, where inline links may point
+ *       to external Link Set resources using {@code rel=linkset}.</li>
+ * </ul>
+ *
+ * <p>
+ * {@code SignPostingView} does <em>not</em> dereference link targets or process Link
+ * Set contents. Clients are responsible for retrieving and validating any external
+ * resources referenced by the returned URIs.
+ * </p>
+ *
+ * @param webLinks the list of WebLinks forming the basis of this view
  */
 public record SignPostingView(List<WebLink> webLinks) {
 
@@ -18,7 +60,7 @@ public record SignPostingView(List<WebLink> webLinks) {
   }
 
   /**
-   * Lists all web links that have the relation type parameter with the given value.
+   * Returns all WebLinks that have the relation type parameter with the given value.
    *
    * <pre>
    * {@code
@@ -31,7 +73,7 @@ public record SignPostingView(List<WebLink> webLinks) {
    * </pre>
    *
    * @param type the relation type to search for
-   * @return a list of web links with the given relation type
+   * @return a list of WebLinks with the given relation type
    */
   public List<WebLink> withRelationType(String type) {
     return SignPostingView.withRelationType(webLinks, type);
@@ -49,9 +91,14 @@ public record SignPostingView(List<WebLink> webLinks) {
   }
 
   /**
-   * Lists all web links that have the relation type {@code rel=cite-as}.
+   * Returns the targets of all WebLinks with relation type {@code rel=cite-as}.
    *
-   * @return a list of web links with the relation type 'cite-as'
+   * <p>
+   * In Signposting Level 1, this relation identifies a persistent identifier
+   * for the scholarly object.
+   * </p>
+   *
+   * @return a list of {@link URI}s for {@code cite-as} links
    */
   public List<URI> citeAs() {
     return withRelationType("cite-as").stream()
@@ -60,9 +107,14 @@ public record SignPostingView(List<WebLink> webLinks) {
   }
 
   /**
-   * Lists all web links that have the relation type {@code rel=describedby}.
+   * Returns the targets of all WebLinks with relation type {@code rel=describedby}.
    *
-   * @return a list of web links with the relation type 'describedby'
+   * <p>
+   * This relation typically points to metadata resources describing the scholarly
+   * object.
+   * </p>
+   *
+   * @return a list of {@link URI}s for {@code describedby} links
    */
   public List<URI> describedBy() {
     return withRelationType("describedby").stream()
@@ -71,9 +123,14 @@ public record SignPostingView(List<WebLink> webLinks) {
   }
 
   /**
-   * Lists all web links that have the relation type {@code rel=linkset}.
+   * Returns the targets of all WebLinks with relation type {@code rel=linkset}.
    *
-   * @return a list of web links with the relation type 'linkset'
+   * <p>
+   * In Signposting Level 2, these URIs identify Link Set resources that must
+   * be retrieved and processed separately by client code.
+   * </p>
+   *
+   * @return a list of {@link URI}s identifying Link Set resources
    */
   public List<URI> linksets() {
     return withRelationType("linkset").stream()
