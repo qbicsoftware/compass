@@ -6,14 +6,13 @@ import java.util.Objects;
 import life.qbic.linksmith.model.WebLink;
 
 /**
- * A semantic, read-only view over a collection of {@link WebLink}s that provides
- * convenient accessors for Signposting-related link relations.
+ * A semantic, read-only view over a collection of {@link WebLink}s that provides convenient
+ * accessors for Signposting-related link relations.
  *
  * <p>
- * {@code SignPostingView} does not perform validation itself. Instead, it assumes
- * that the supplied WebLinks have already been processed by one or more
- * {@link SignPostingValidator}s and offers a profile-oriented API to inspect the
- * resulting links.
+ * {@code SignPostingView} does not perform validation itself. Instead, it assumes that the supplied
+ * WebLinks have already been processed by one or more {@link SignPostingValidator}s and offers a
+ * profile-oriented API to inspect the resulting links.
  * </p>
  *
  * <p>
@@ -79,6 +78,18 @@ public record SignPostingView(List<WebLink> webLinks) {
     return SignPostingView.withRelationType(webLinks, type);
   }
 
+  /**
+   * Returns all WebLinks that have the relation type parameter with the given value.
+   * <p>
+   * The provided WebLink list is not modified but just read. Filtering must rule out potential null
+   * items first.
+   * <p>
+   * The returned list is immutable.
+   *
+   * @param webLinks the WebLinks to filter
+   * @param type     the serialised type of the parameter
+   * @return all WebLinks with the provided type parameter
+   */
   private static List<WebLink> withRelationType(List<WebLink> webLinks, String type) {
     return webLinks.stream()
         .filter(Objects::nonNull)
@@ -86,16 +97,28 @@ public record SignPostingView(List<WebLink> webLinks) {
         .toList();
   }
 
+  /**
+   * Returns a boolean flag for the presence of a given relation type in a WebLink.
+   * <p>
+   * Relation types in WebLinks are serialised with the parameter 'rel': {@code rel=<type>}.
+   * <p>
+   * The current implementation is <strong>not case-sensitive</strong>.
+   *
+   * @param webLink the WebLink to investigate
+   * @param type    the serialised relation type.
+   * @return true, if the WebLink contains a relation with the provided type
+   */
   private static boolean hasRelationType(WebLink webLink, String type) {
-    return webLink.rel().contains(type.toLowerCase());
+    return webLink.rel().stream()
+        .anyMatch(relation -> relation.equalsIgnoreCase(type));
   }
 
   /**
    * Returns the targets of all WebLinks with relation type {@code rel=cite-as}.
    *
    * <p>
-   * In Signposting Level 1, this relation identifies a persistent identifier
-   * for the scholarly object.
+   * In Signposting Level 1, this relation identifies a persistent identifier for the scholarly
+   * object.
    * </p>
    *
    * @return a list of {@link URI}s for {@code cite-as} links
@@ -110,8 +133,7 @@ public record SignPostingView(List<WebLink> webLinks) {
    * Returns the targets of all WebLinks with relation type {@code rel=describedby}.
    *
    * <p>
-   * This relation typically points to metadata resources describing the scholarly
-   * object.
+   * This relation typically points to metadata resources describing the scholarly object.
    * </p>
    *
    * @return a list of {@link URI}s for {@code describedby} links
@@ -126,8 +148,8 @@ public record SignPostingView(List<WebLink> webLinks) {
    * Returns the targets of all WebLinks with relation type {@code rel=linkset}.
    *
    * <p>
-   * In Signposting Level 2, these URIs identify Link Set resources that must
-   * be retrieved and processed separately by client code.
+   * In Signposting Level 2, these URIs identify Link Set resources that must be retrieved and
+   * processed separately by client code.
    * </p>
    *
    * @return a list of {@link URI}s identifying Link Set resources
