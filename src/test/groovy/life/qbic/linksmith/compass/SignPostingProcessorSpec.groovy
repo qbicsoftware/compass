@@ -1,9 +1,11 @@
 package life.qbic.linksmith.compass
 
+import life.qbic.linksmith.compass.model.SignPostingView
 import life.qbic.linksmith.compass.spi.SignPostingResult
 import life.qbic.linksmith.compass.spi.SignPostingValidator
 import life.qbic.linksmith.compass.validator.Level1SignPostingValidator
 import life.qbic.linksmith.model.WebLink
+import life.qbic.linksmith.spi.WebLinkValidator
 import spock.lang.Specification
 
 /**
@@ -20,23 +22,41 @@ class SignPostingProcessorSpec extends Specification {
     // Happy paths
     // ------------------------------------------------------------------------
 
-    def "process returns SignPostingResult with SignPostingView wrapping the provided WebLinks"() {
+    def "processor calls all configured validators exactly once with the provided WebLinks"() {
         given:
-        def inputLinks = [
+        def webLinks = [
                 weblink("https://example.org/object"),
-                weblink("https://doi.org/10.1234/xyz")
+                weblink("https://example.org/meta")
         ]
+
+        def v1 = Mock(SignPostingValidator)
+        def v2 = Mock(SignPostingValidator)
+
+        and: "each validator returns some result"
+        def r1 = new SignPostingResult(new SignPostingView(webLinks), new WebLinkValidator.IssueReport([WebLinkValidator.Issue.warning("v1")]))
+        def r2 = new SignPostingResult(new SignPostingView(webLinks), new WebLinkValidator.IssueReport([WebLinkValidator.Issue.warning("v2")]))
+
+        and:
         def processor = new SignPostingProcessor.Builder()
-                .withValidators(Stub(SignPostingValidator)) // presence irrelevant for current implementation
+                .withValidators(v1, v2)
                 .build()
 
         when:
-        SignPostingResult result = processor.process(inputLinks)
+        def result = processor.process(webLinks)
 
-        then:
+        then: "both validators are invoked"
+        1 * v1.validate(webLinks) >> r1
+        1 * v2.validate(webLinks) >> r2
+        0 * _
+
+        and: "result contains the original view"
         result != null
         result.signPostingView() != null
-        result.signPostingView().webLinks() == inputLinks
+        result.signPostingView().webLinks() == webLinks
+
+        and: "processor returns a combined report (adjust expectations to your aggregation rules)"
+        result.issueReport() != null
+        result.issueReport().issues()*.message().containsAll(["v1", "v2"])
     }
 
     def "builder without validators falls back to Level1SignPostingValidator by default"() {
@@ -90,23 +110,30 @@ class SignPostingProcessorSpec extends Specification {
     // Side effects / invariants
     // ------------------------------------------------------------------------
 
-    def "process does not mutate the provided WebLinks list"() {
+    def "processor does not mutate the provided WebLinks list"() {
         given:
-        def inputLinks = new ArrayList<WebLink>([
-                weblink("https://example.org/object"),
-                weblink("https://example.org/meta")
+        def webLinks = new ArrayList<WebLink>([
+                weblink("https://example.org/object")
         ])
-        def snapshot = new ArrayList<>(inputLinks)
+        def snapshot = new ArrayList<>(webLinks)
 
+        and:
+        def v = Mock(SignPostingValidator)
         def processor = new SignPostingProcessor.Builder()
-                .withValidators(Stub(SignPostingValidator))
+                .withValidators(v)
                 .build()
 
+        and:
+        v.validate(_ as List<WebLink>) >> new SignPostingResult(
+                new SignPostingView(webLinks),
+                new WebLinkValidator.IssueReport([])
+        )
+
         when:
-        processor.process(inputLinks)
+        processor.process(webLinks)
 
         then:
-        inputLinks == snapshot
+        webLinks == snapshot
     }
 
     def "SignPostingView performs defensive copy: modifying input list after processing does not affect the view"() {
@@ -115,8 +142,17 @@ class SignPostingProcessorSpec extends Specification {
                 weblink("https://example.org/object")
         ])
 
+        and: "a validator that returns a real result"
+        def validator = Stub(SignPostingValidator) {
+            validate(_ as List<WebLink>) >> { List<WebLink> passed ->
+                // IMPORTANT: return a real SignPostingResult, not a mock
+                new SignPostingResult(new SignPostingView(passed), new WebLinkValidator.IssueReport([]))
+            }
+        }
+
+        and:
         def processor = new SignPostingProcessor.Builder()
-                .withValidators(Stub(SignPostingValidator))
+                .withValidators(validator)
                 .build()
 
         when:
@@ -125,7 +161,7 @@ class SignPostingProcessorSpec extends Specification {
 
         then:
         result.signPostingView().webLinks().size() == 1
-        result.signPostingView().webLinks()*.target == [URI.create("https://example.org/object")]
+        result.signPostingView().webLinks().get(0).target() == URI.create("https://example.org/object")
     }
 
     def "builder does not retain a mutable reference to the validators list passed in"() {
