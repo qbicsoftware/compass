@@ -1,8 +1,10 @@
-package life.qbic.jsign.validator;
+package life.qbic.linksmith.compass.model;
 
 import java.net.URI;
 import java.util.List;
 import java.util.Objects;
+import life.qbic.linksmith.compass.spi.SignPostingResult;
+import life.qbic.linksmith.compass.spi.SignPostingValidator;
 import life.qbic.linksmith.model.WebLink;
 
 /**
@@ -37,9 +39,9 @@ import life.qbic.linksmith.model.WebLink;
  * The view supports both:
  * </p>
  * <ul>
- *   <li><strong>Level&nbsp;1 Signposting</strong>, where typed links are provided inline
+ *   <li><strong>Level 1 Signposting</strong>, where typed links are provided inline
  *       via HTTP {@code Link} headers, and</li>
- *   <li><strong>Level&nbsp;2 Signposting discovery</strong>, where inline links may point
+ *   <li><strong>Level 2 Signposting discovery</strong>, where inline links may point
  *       to external Link Set resources using {@code rel=linkset}.</li>
  * </ul>
  *

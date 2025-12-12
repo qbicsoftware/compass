@@ -1,8 +1,11 @@
-package life.qbic.jsign.validator;
+package life.qbic.linksmith.compass.validator;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import life.qbic.linksmith.compass.spi.SignPostingResult;
+import life.qbic.linksmith.compass.spi.SignPostingValidator;
+import life.qbic.linksmith.compass.model.SignPostingView;
 import life.qbic.linksmith.model.WebLink;
 import life.qbic.linksmith.spi.WebLinkValidator.Issue;
 import life.qbic.linksmith.spi.WebLinkValidator.IssueReport;

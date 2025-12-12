@@ -1,4 +1,4 @@
-package life.qbic.jsign.validator;
+package life.qbic.linksmith.compass.spi;
 
 import java.util.List;
 import life.qbic.linksmith.model.WebLink;
