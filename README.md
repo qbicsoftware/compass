@@ -16,7 +16,7 @@ in [RFC 8288](https://datatracker.ietf.org/doc/html/rfc8288).
 
 Check the latest component version on [Maven Central](https://central.sonatype.com/artifact/life.qbic/compass/).
 
-## Example: authors of a web resource
+## Example: Level 1 FAIR Signposting Profile validation
 
 ```bash
 curl -I https://zenodo.org/records/17179862
