@@ -8,6 +8,10 @@
   <artifactId>jsign</artifactId>
   <version>1.0.0-alpha.1</version>
 
+  <name>${project.groupId}:${project.artifactId}</name>
+  <description>A Java library to process and validate FAIR signposting profiles based on Linksmith.</description>
+  <url>https://github.com/qbicsoftware/jsign</url>
+
   <properties>
     <maven.compiler.source>21</maven.compiler.source>
     <maven.compiler.target>21</maven.compiler.target>
@@ -17,6 +21,22 @@
     <spock.version>2.4-M7-groovy-5.0</spock.version>
     <gmavenplus.version>4.2.1</gmavenplus.version>
   </properties>
+
+  <licenses>
+    <license>
+      <name>GNU Affero General Public License, Version 3.0</name>
+      <url>https://www.gnu.org/licenses/agpl-3.0.html.en#license-text</url>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <name>Sven Fillinger</name>
+      <email>sven.fillinger@uni-tuebingen.de</email>
+      <organization>University of Tübingen</organization>
+      <organizationUrl>https://uni-tuebingen.de</organizationUrl>
+    </developer>
+  </developers>
 
   <dependencies>
     <dependency>
