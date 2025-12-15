@@ -9,3 +9,6 @@ org.cyclonedx:cyclonedx-maven-plugin = 0xFA77DCFEF2EE6EB2DEBEDD2C012579464D01C06
 
 # Sonatype deployment plugin
 org.sonatype.central:central-publishing-maven-plugin:0.9.0 = 0x27C7B9756A9C691EE87696FB5C9BD9F4EAAD7054
+
+# QBiC Linksmith library to craft weblinks
+life.qbic:linksmith:1.0.0-alpha.2 = 0x701E55A5314556757C7D3ABCC5566B352DF7E74D
