@@ -1,0 +1,88 @@
+name: Create Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      versionTag:
+        description: 'Version Tag (semantic version)'
+        required: true
+permissions:
+  id-token: write # This is required for requesting the JWT
+  contents: read # This is required for actions/checkout
+  attestations: write   # required for provenance
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'zulu'
+          java-version: '21'
+          settings-path: ${{ github.workspace }}
+
+      - name: Load local Maven repository cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Import GPG private key
+        run: |
+          echo "$GPG_PRIVATE_KEY" | gpg --batch --import
+          gpg --list-secret-keys
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+
+      - name: Set version in Maven project
+        run: mvn versions:set -DnewVersion=${{ github.event.inputs.versionTag }} -DprocessAllModules
+
+      - name: Build with Maven
+        run: mvn -B package -Prelease --file pom.xml
+
+      - name: Create Release Notes
+        if: ${{ !startsWith(github.ref, 'refs/tags/')
+          && !( contains(github.event.inputs.versionTag, 'alpha')
+          || contains(github.event.inputs.versionTag, 'beta')
+          || contains(github.event.inputs.versionTag, 'rc')) }}
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{secrets.JOHNNY_Q5_REPORTS_TOKEN}}
+          script: |
+            await github.request(`POST /repos/${{ github.repository }}/releases`, {
+              tag_name: "${{ github.event.inputs.versionTag }}",
+              generate_release_notes: true
+            });
+
+      - name: Create Pre-Release Notes
+        if: ${{ !startsWith(github.ref, 'refs/tags/')
+          && ( contains(github.event.inputs.versionTag, 'alpha')
+          || contains(github.event.inputs.versionTag, 'beta')
+          || contains(github.event.inputs.versionTag, 'rc')) }}
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{secrets.JOHNNY_Q5_REPORTS_TOKEN}}
+          script: |
+            await github.request(`POST /repos/${{ github.repository }}/releases`, {
+              tag_name: "${{ github.event.inputs.versionTag }}",
+              generate_release_notes: true,
+              prerelease: true
+            });
+
+      # Generate provenance (SLSA attestation) for all JARs
+      - name: Generate SLSA build provenance
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-path: "**/target/*.jar"
+
+      - name: Publish artefact to Maven Central
+        run: mvn --quiet --settings $GITHUB_WORKSPACE/.github.settings.xml -Prelease -DskipTests deploy
+        env:
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          SONATYPE_CENTRAL_USERNAME: ${{ secrets.SONATYPE_CENTRAL_USERNAME }}
+          SONATYPE_CENTRAL_PASSWORD: ${{ secrets.SONATYPE_CENTRAL_PASSWORD }}
+
