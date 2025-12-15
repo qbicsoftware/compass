@@ -1,0 +1,11 @@
+# sigstore-maven-plugin
+dev.sigstore:sigstore-maven-plugin = 0x300B49C14DFA7E0AD9D8515400E008229F5DAF37
+
+# gmavenplus-plugin
+org.codehaus.gmavenplus:gmavenplus-plugin = 0x0867FACD3788F7B0BB24CD1FD90C38195BEDB15F
+
+# cyclonedx-maven-plugin
+org.cyclonedx:cyclonedx-maven-plugin = 0xFA77DCFEF2EE6EB2DEBEDD2C012579464D01C06A
+
+# Sonatype deployment plugin
+org.sonatype.central:central-publishing-maven-plugin:0.9.0 = 0x27C7B9756A9C691EE87696FB5C9BD9F4EAAD7054
