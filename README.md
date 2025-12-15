@@ -1,7 +1,6 @@
 # Compass
 
-A Java library to craft HTTP web links from serialized header data described
-in [RFC 8288](https://datatracker.ietf.org/doc/html/rfc8288).
+A Java library to process and validate FAIR signposting profiles based on [Linksmith](https://github.com/qbicsoftware/linksmith).
 
 # Quick start
 
