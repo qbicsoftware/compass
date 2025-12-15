@@ -5,12 +5,12 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>life.qbic</groupId>
-  <artifactId>jsign</artifactId>
+  <artifactId>compass</artifactId>
   <version>1.0.0-alpha.1</version>
 
   <name>${project.groupId}:${project.artifactId}</name>
   <description>A Java library to process and validate FAIR signposting profiles based on Linksmith.</description>
-  <url>https://github.com/qbicsoftware/jsign</url>
+  <url>https://github.com/qbicsoftware/compass</url>
 
   <properties>
     <maven.compiler.source>21</maven.compiler.source>

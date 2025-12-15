@@ -1,4 +1,4 @@
-package life.qbic.linksmith.compass.model
+package life.qbic.compass.model
 
 
 import life.qbic.linksmith.model.WebLink
@@ -6,7 +6,7 @@ import life.qbic.linksmith.model.WebLinkParameter
 import spock.lang.Specification
 
 /**
- * Specification for {@link life.qbic.linksmith.compass.model.SignPostingView}.
+ * Specification for {@link SignPostingView}.
  *
  * Focus:
  *  - structural invariants (immutability, defensive copying, no side effects)

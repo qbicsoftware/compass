@@ -1,6 +1,6 @@
-package life.qbic.linksmith.compass.validator
+package life.qbic.compass.validator
 
-import life.qbic.linksmith.compass.spi.SignPostingResult
+import life.qbic.compass.spi.SignPostingResult
 import life.qbic.linksmith.model.WebLink
 import life.qbic.linksmith.model.WebLinkParameter
 import spock.lang.Specification

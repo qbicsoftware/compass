@@ -1,10 +1,10 @@
-package life.qbic.linksmith.compass.model;
+package life.qbic.compass.model;
 
 import java.net.URI;
 import java.util.List;
 import java.util.Objects;
-import life.qbic.linksmith.compass.spi.SignPostingResult;
-import life.qbic.linksmith.compass.spi.SignPostingValidator;
+import life.qbic.compass.spi.SignPostingResult;
+import life.qbic.compass.spi.SignPostingValidator;
 import life.qbic.linksmith.model.WebLink;
 
 /**
