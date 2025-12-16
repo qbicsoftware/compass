@@ -1,9 +1,10 @@
 name: Run Maven Tests
 
 on:
+  pull_request:
   push:
     branches:
-      - '**'
+      - main
 permissions:
   id-token: write # This is required for requesting the JWT
   contents: read # This is required for actions/checkout
@@ -30,12 +31,22 @@ jobs:
             ${{ runner.os }}-maven-
 
       - name: Run tests with coverage
-        run: mvn -B clean test
+        run: mvn -B clean verify -Dgpg.skip=true
 
-      - name: Upload coverage to Codecov
+      - name: Upload JaCoCo report artifact (PR)
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: target/site/jacoco/
+
+      # main: upload to Codecov (only after merge)
+      - name: Upload coverage to Codecov (main only)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: codecov/codecov-action@v5
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
-          files: ./target/site/jacoco/jacoco.xml
+          files: target/site/jacoco/jacoco.xml
+          use_oidc: true
           fail_ci_if_error: true
