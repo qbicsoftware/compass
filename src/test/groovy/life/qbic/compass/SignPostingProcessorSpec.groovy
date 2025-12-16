@@ -3,7 +3,7 @@ package life.qbic.compass
 import life.qbic.compass.model.SignPostingView
 import life.qbic.compass.spi.SignPostingResult
 import life.qbic.compass.spi.SignPostingValidator
-import life.qbic.compass.validator.Level1SignPostingValidator
+import life.qbic.compass.validation.Level1SignPostingValidator
 import life.qbic.linksmith.model.WebLink
 import life.qbic.linksmith.spi.WebLinkValidator
 import spock.lang.Specification

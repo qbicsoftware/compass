@@ -1,4 +1,4 @@
-package life.qbic.compass.validator
+package life.qbic.compass.validation
 
 
 import life.qbic.linksmith.model.WebLink

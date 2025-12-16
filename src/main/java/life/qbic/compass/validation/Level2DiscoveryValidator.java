@@ -1,4 +1,4 @@
-package life.qbic.compass.validator;
+package life.qbic.compass.validation;
 
 import java.util.ArrayList;
 import java.util.List;
