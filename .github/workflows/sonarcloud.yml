@@ -45,5 +45,5 @@ jobs:
             org.sonarsource.scanner.maven:sonar-maven-plugin:4.0.0.4121:sonar \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.organization=qbicsoftware \
-            -Dsonar.projectKey=qbicsoftware_linksmith \
+            -Dsonar.projectKey=qbicsoftware_compass \
             -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
