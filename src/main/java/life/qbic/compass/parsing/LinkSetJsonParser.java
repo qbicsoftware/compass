@@ -22,9 +22,31 @@ import tools.jackson.databind.ObjectReader;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
- * <class short description>
+ * Parses Linkset documents in JSON representation (media types {@code application/linkset+json} and
+ * {@code application/linkset}) into a flat list of {@link WebLink} instances.
+ * <p>
+ * This parser implements the JSON Linkset representation defined by RFC 9264. A Linkset document is
+ * a JSON object with a single top-level {@code "linkset"} member whose value is an array of
+ * <i>link context objects</i>. Each link context object has a shared {@code "anchor"} and one or
+ * more additional members whose names represent link relation types (e.g. {@code "author"},
+ * {@code "cite-as"}). The values of such relation members are arrays of <i>link target objects</i>
+ * that contain at least {@code "href"} and optionally additional target attributes.
+ * <p>
+ * The parser converts each link target object into a {@link WebLink} by:
+ * <ul>
+ *   <li>Using {@code href} as {@link WebLink#target()}.</li>
+ *   <li>Adding a {@code rel} parameter with the relation type name (member name in JSON).</li>
+ *   <li>Adding an {@code anchor} parameter with the parsed anchor value.</li>
+ *   <li>Adding all remaining members of the target object as {@link WebLinkParameter} entries
+ *       (uninterpreted), to be validated by downstream RFC/profile validators.</li>
+ * </ul>
+ * <p>
+ * This class deliberately keeps semantic validation minimal. Structural violations of the JSON
+ * representation (e.g. missing {@code linkset}, unexpected token types, malformed JSON) result in
+ * {@link ParsingException}. Deeper semantic checks (e.g. required relations, parameter constraints,
+ * Signposting profile rules) are expected to be handled by validators downstream.
  *
- * @since <version tag>
+ * @author Sven Fillinger
  */
 public class LinkSetJsonParser implements LinkSetParser {
 
@@ -56,6 +78,9 @@ public class LinkSetJsonParser implements LinkSetParser {
    */
   @Override
   public List<WebLink> parse(String rawLinkSet) throws ParsingException {
+    if (rawLinkSet == null) {
+      throw new ParsingException("raw link set must not be null");
+    }
     return parse(new ByteArrayInputStream(rawLinkSet.getBytes(StandardCharsets.UTF_8)));
   }
 
@@ -78,6 +103,9 @@ public class LinkSetJsonParser implements LinkSetParser {
    */
   @Override
   public List<WebLink> parse(InputStream inputStream) throws ParsingException {
+    if (inputStream == null) {
+      throw new ParsingException("input stream must not be null");
+    }
     JsonMapper mapper = JsonMapper.builder().build();
     ObjectReader reader = mapper.reader();
 
@@ -151,19 +179,18 @@ public class LinkSetJsonParser implements LinkSetParser {
     String anchorValue = null;
 
     while (currentToken != null && currentToken != JsonToken.END_OBJECT) {
-
       if (parser.currentName() == null) {
         currentToken = parser.nextToken();
         continue;
       }
-
+      // Only the "anchor" member has a scalar value. Link target objects are grouped by relation
+      // type in JSON arrays
       switch (parser.currentName()) {
         case "anchor" -> anchorValue = parser.getString();
         default -> parseLinkTarget(parser, relationTypeEntries);
       }
       currentToken = parser.nextToken();
     }
-
     collectedLinks.addAll(createWebLinks(anchorValue, relationTypeEntries));
   }
 
@@ -275,7 +302,6 @@ public class LinkSetJsonParser implements LinkSetParser {
       token = parser.nextToken();
     }
   }
-
 
   /**
    * Link target objects encode a target link with a URI encoded in its "href" attribute and a list

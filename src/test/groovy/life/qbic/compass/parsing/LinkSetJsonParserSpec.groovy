@@ -117,7 +117,7 @@ class LinkSetJsonParserSpec extends Specification {
     @Unroll
     def "invalid: rejects malformed / semantically invalid linkset+json (#caseName)"() {
         when:
-        parser.parse(raw)
+        parser.parse((String) raw)
 
         then:
         thrown(LinkSetParser.ParsingException)
