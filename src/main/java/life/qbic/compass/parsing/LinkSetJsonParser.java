@@ -141,7 +141,7 @@ public class LinkSetJsonParser implements LinkSetParser {
 
       var collectedWebLinks = new ArrayList<WebLink>();
       while ((token = parser.nextToken()) != null && token != JsonToken.END_ARRAY) {
-        parseLinkContext(token, parser, collectedWebLinks);
+        tryParseLinkContext(token, parser, collectedWebLinks);
       }
       return collectedWebLinks;
     } catch (JacksonException e) {
@@ -150,6 +150,20 @@ public class LinkSetJsonParser implements LinkSetParser {
           "Invalid linkset JSON at line " + location.getLineNr() +
               ", column " + location.getColumnNr() +
               ": " + e.getOriginalMessage(), e
+      );
+    }
+  }
+
+  private static void tryParseLinkContext(JsonToken token, JsonParser parser,
+      ArrayList<WebLink> collectedWebLinks) {
+    try {
+      parseLinkContext(token, parser, collectedWebLinks);
+    } catch (IllegalArgumentException | ParsingException e) {
+      // Ensure the client friendly information about the location is passed with the exception
+      var location = parser.currentLocation();
+      throw new ParsingException(
+          "Invalid linkset JSON at line " + location.getLineNr() +
+              ", column " + location.getColumnNr(), e
       );
     }
   }
@@ -225,16 +239,33 @@ public class LinkSetJsonParser implements LinkSetParser {
    * @param anchorValue         the anchor value (context/origin)
    * @param relationTypeEntries parsed link target object
    * @return a new {@link WebLink} instance
+   * @throws ParsingException
    */
-  private static WebLink createWebLink(String anchorValue, LinkTargetObject relationTypeEntries) {
+  private static WebLink createWebLink(String anchorValue, LinkTargetObject relationTypeEntries) throws ParsingException{
     var parameters = new ArrayList<WebLinkParameter>();
     parameters.add(new WebLinkParameter("rel", relationTypeEntries.relationType()));
-    parameters.add(new WebLinkParameter("anchor", anchorValue));
+    // an anchor value MAY be provided according to RFC 9264.
+    if (anchorValue != null) {
+      // in case a value for the anchor is provided, ist MUST be a URI
+      if (!isUri(anchorValue)) {
+        throw new IllegalArgumentException("Anchor value must be a URI: " + anchorValue);
+      }
+      parameters.add(new WebLinkParameter("anchor", anchorValue));
+    }
     parameters.addAll(
         relationTypeEntries.parameters().entrySet().stream()
             .map(entry -> new WebLinkParameter(entry.getKey(), entry.getValue()))
             .toList());
     return new WebLink(URI.create(relationTypeEntries.href()), parameters);
+  }
+
+  private static boolean isUri(String value) {
+    try {
+      URI.create(value);
+      return true;
+    } catch (IllegalArgumentException e) {
+      return false;
+    }
   }
 
   /**
