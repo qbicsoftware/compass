@@ -49,7 +49,7 @@ jobs:
           && !( contains(github.event.inputs.versionTag, 'alpha')
           || contains(github.event.inputs.versionTag, 'beta')
           || contains(github.event.inputs.versionTag, 'rc')) }}
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{secrets.JOHNNY_Q5_REPORTS_TOKEN}}
           script: |
@@ -63,7 +63,7 @@ jobs:
           && ( contains(github.event.inputs.versionTag, 'alpha')
           || contains(github.event.inputs.versionTag, 'beta')
           || contains(github.event.inputs.versionTag, 'rc')) }}
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{secrets.JOHNNY_Q5_REPORTS_TOKEN}}
           script: |
