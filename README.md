@@ -2,6 +2,16 @@
 
 A Java library to process and validate FAIR signposting profiles based on [Linksmith](https://github.com/qbicsoftware/linksmith).
 
+## ⚠️ Development Status
+
+This repository is in an **early and experimental stage**.
+
+- APIs may change or be removed without prior notice
+- Documentation may be incomplete or outdated
+- Backward compatibility is **not guaranteed**
+
+Use at your own risk.
+
 # Quick start
 
 ## Resolve dependency
