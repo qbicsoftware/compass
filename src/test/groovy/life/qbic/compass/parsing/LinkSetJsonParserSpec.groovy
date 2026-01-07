@@ -42,11 +42,8 @@ class LinkSetJsonParserSpec extends Specification {
         links[0].rel().contains("author")
         links[0].type().orElse(null) == "application/rdf+xml"
 
-        and: "anchor is available on the produced weblink (choose the assertion matching your model)"
-        // If anchor() returns Optional<String>:
-        // links[0].anchor().orElse(null) == "https://example.org/resource1"
-        // If anchor() returns Optional<URI>:
-        // links[0].anchor().orElse(null) == URI.create("https://example.org/resource1")
+        and: "anchor is available on the produced weblink"
+        links[0].anchor().orElse(null) == "https://example.org/resource1"
     }
 
     def "happy path: parses multiple anchors and multiple relations into multiple weblinks"() {
@@ -129,7 +126,6 @@ class LinkSetJsonParserSpec extends Specification {
         "not json"                    | "<not-json>"
         "missing top-level linkset"   | '{"x": []}'
         "linkset not an array"        | '{"linkset": {}}'
-        "entry missing anchor"        | '{"linkset":[{"author":[{"href":"https://example.org/a"}]}]}'
         "relation value not an array" | '{"linkset":[{"anchor":"https://example.org/r","author":{"href":"https://example.org/a"}}]}'
         "target missing href"         | '{"linkset":[{"anchor":"https://example.org/r","author":[{"type":"text/plain"}]}]}'
         "href not a uri"              | '{"linkset":[{"anchor":"https://example.org/r","author":[{"href":"::::"}]}]}'

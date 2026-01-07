@@ -143,7 +143,7 @@ public class LinkSetJsonParser implements LinkSetParser {
       while ((token = parser.nextToken()) != null && token != JsonToken.END_ARRAY) {
         tryParseLinkContext(token, parser, collectedWebLinks);
       }
-      return collectedWebLinks;
+      return List.copyOf(collectedWebLinks);
     } catch (JacksonException e) {
       var location = e.getLocation();
       throw new ParsingException(
@@ -193,15 +193,19 @@ public class LinkSetJsonParser implements LinkSetParser {
     String anchorValue = null;
 
     while (currentToken != null && currentToken != JsonToken.END_OBJECT) {
-      if (parser.currentName() == null) {
+      if (parser.currentName() == null || currentToken != JsonToken.PROPERTY_NAME ) {
         currentToken = parser.nextToken();
         continue;
       }
       // Only the "anchor" member has a scalar value. Link target objects are grouped by relation
       // type in JSON arrays
       switch (parser.currentName()) {
-        case "anchor" -> anchorValue = parser.getString();
-        default -> parseLinkTarget(parser, relationTypeEntries);
+        case "anchor" -> anchorValue = parser.nextStringValue();
+        default -> {
+          // Forward to the next token which is expected to the start of an array
+          parser.nextToken();
+          parseLinkTargets(parser, relationTypeEntries);
+        }
       }
       currentToken = parser.nextToken();
     }
@@ -241,7 +245,8 @@ public class LinkSetJsonParser implements LinkSetParser {
    * @return a new {@link WebLink} instance
    * @throws ParsingException
    */
-  private static WebLink createWebLink(String anchorValue, LinkTargetObject relationTypeEntries) throws ParsingException{
+  private static WebLink createWebLink(String anchorValue, LinkTargetObject relationTypeEntries)
+      throws ParsingException {
     var parameters = new ArrayList<WebLinkParameter>();
     parameters.add(new WebLinkParameter("rel", relationTypeEntries.relationType()));
     // an anchor value MAY be provided according to RFC 9264.
@@ -252,6 +257,7 @@ public class LinkSetJsonParser implements LinkSetParser {
       }
       parameters.add(new WebLinkParameter("anchor", anchorValue));
     }
+
     parameters.addAll(
         relationTypeEntries.parameters().entrySet().stream()
             .map(entry -> new WebLinkParameter(entry.getKey(), entry.getValue()))
@@ -269,6 +275,8 @@ public class LinkSetJsonParser implements LinkSetParser {
   }
 
   /**
+   * Parses an array of link targets and adds them as {@link LinkTargetObject}.
+   * <p>
    * In JSON-serialized set of links, link targets are expressed in link context objects.
    * <p>
    * A link context object contains all link targets with the same context, which is expressed in
@@ -302,9 +310,12 @@ public class LinkSetJsonParser implements LinkSetParser {
    * @param parser            the current active JSON parser to use to iterate though the tokens
    * @param linkTargetObjects the current list of parsed link target objects
    */
-  private static void parseLinkTarget(JsonParser parser,
+  private static void parseLinkTargets(JsonParser parser,
       List<LinkTargetObject> linkTargetObjects) {
     var relationType = parser.currentName();
+    if (parser.currentToken() != JsonToken.START_ARRAY) {
+      throw new ParsingException("Link targets must we provided in an array");
+    }
     JsonToken token = parser.nextToken();
     var relationParameters = new HashMap<String, String>();
     // for each relation in a linkset JSON object, the link targets are JSON objects themselves
@@ -322,8 +333,7 @@ public class LinkSetJsonParser implements LinkSetParser {
         // every relation parameter is a property of its parent relation
         var propertyName = parser.getString();
         // the next token is the value of the property
-        parser.nextToken();
-        var propertyValue = parser.getString();
+        var propertyValue = parser.nextStringValue();
         relationParameters.put(propertyName, propertyValue);
         token = parser.nextToken();
       }
@@ -348,8 +358,11 @@ public class LinkSetJsonParser implements LinkSetParser {
   private static LinkTargetObject createLinkTarget(
       String relationType,
       Map<String, String> targetAttributes) {
+    if (!targetAttributes.containsKey("href")) {
+      throw new ParsingException("Missing 'href' parameter for link target");
+    }
     return new LinkTargetObject(relationType,
-        targetAttributes.getOrDefault("href", ""),
+        targetAttributes.get("href"),
         targetAttributes.entrySet().stream()
             .filter(entrySet -> !Objects.equals(entrySet.getKey(), "href"))
             .collect(Collectors.toMap(Entry::getKey, Entry::getValue))
