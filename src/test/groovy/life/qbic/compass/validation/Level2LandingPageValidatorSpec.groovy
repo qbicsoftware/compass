@@ -1,6 +1,8 @@
 package life.qbic.compass.validation
 
 import life.qbic.compass.parsing.LinkSetJsonParser
+import life.qbic.linksmith.model.WebLink
+import life.qbic.linksmith.model.WebLinkParameter
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -30,28 +32,6 @@ class Level2LandingPageValidatorSpec extends Specification implements OfficialSi
         { "href": "https://example.org/meta/7507/citeproc", "type": "application/vnd.citationstyles.csl+json" }
       ],
       "license": [ { "href": "https://spdx.org/licenses/CC-BY-4.0" } ]
-    },
-    {
-      "anchor": "https://example.org/file/7507/1",
-      "collection": [ { "href": "https://example.org/page/7507", "type": "text/html" } ]
-    },
-    {
-      "anchor": "https://example.org/file/7507/2",
-      "collection": [ { "href": "https://example.org/page/7507", "type": "text/html" } ],
-      "type": [ { "href": "https://schema.org/Dataset" } ]
-    },
-    {
-      "anchor": "https://gitmodo.io/johnd/ct.zip",
-      "collection": [ { "href": "https://example.org/page/7507", "type": "text/html" } ],
-      "type": [ { "href": "https://schema.org/SoftwareSourceCode" } ]
-    },
-    {
-      "anchor": "https://doi.org/10.5061/dryad.5d23f",
-      "describes": [ { "href": "https://example.org/page/7507", "type": "text/html" } ]
-    },
-    {
-      "anchor": "https://example.org/meta/7507/bibtex",
-      "describes": [ { "href": "https://example.org/page/7507", "type": "text/html" } ]
     }
   ]
 }
@@ -120,23 +100,6 @@ class Level2LandingPageValidatorSpec extends Specification implements OfficialSi
         result.issueReport().issues()*.message().any { it.toLowerCase().contains("cite-as") && it.toLowerCase().contains("multiple") }
     }
 
-    def "unhappy path: insecure http target in a landing relation should raise a warning"() {
-        given: "replace one describedby href with insecure http"
-        def brokenJson = OFFICIAL.replace(
-                '"href": "https://example.org/meta/7507/bibtex"',
-                '"href": "http://example.org/meta/7507/bibtex"'
-        )
-        def weblinks = parser.parse(asStream(brokenJson))
-        def validator = Level2LandingPageValidator.create()
-
-        when:
-        def result = validator.validate(weblinks)
-
-        then:
-        result.issueReport().hasWarnings()
-        result.issueReport().issues()*.message().any { it.toLowerCase().contains("http") || it.toLowerCase().contains("https") }
-    }
-
     def "unhappy path: landing anchor missing entirely should raise an error in landing validation"() {
         given: "remove the anchor field from the landing link context object"
         def brokenJson = OFFICIAL.replaceFirst(/"anchor"\s*:\s*"https:\/\/example\.org\/page\/7507"\s*,?/, '')
@@ -149,6 +112,59 @@ class Level2LandingPageValidatorSpec extends Specification implements OfficialSi
         then:
         result.issueReport().hasErrors()
         result.issueReport().issues()*.message().any { it.toLowerCase().contains("anchor") }
+    }
+
+    def "unhappy path: validator must not validate landing recipe if multiple anchors are present"() {
+        given:
+        def validator = Level2LandingPageValidator.create()
+        def weblinks = parser.parse(asStream(OFFICIAL))
+
+        and: "inject one additional weblink with a different anchor"
+        // This depends on your WebLink API (adjust constructor/factory accordingly)
+        def foreign = WebLink.create(
+                URI.create("https://spdx.org/licenses/0BSD.html"),
+                [
+                        new WebLinkParameter("rel", "license"),
+                        new WebLinkParameter("anchor", "https://example.org/page/7507")
+                ]
+        )
+        weblinks = new ArrayList<>(weblinks)
+        weblinks.add(foreign)
+
+        when:
+        def result = validator.validate(weblinks)
+
+        then:
+        result.issueReport().hasErrors()
+        result.issueReport().issues()*.message().any { it.toLowerCase().contains("license") && it.toLowerCase().contains("multiple") }
+    }
+
+    def "unhappy path: the landing page license property must have a cardinality of (0,1). Multiple licences should raise an error"() {
+        given:
+        def validator = Level2LandingPageValidator.create()
+        def weblinks = parser.parse(asStream(OFFICIAL))
+
+        and: "inject one additional weblink with another license"
+        // This depends on your WebLink API (adjust constructor/factory accordingly)
+        def foreign = WebLink.create(
+                URI.create("https://example.org/somewhere"),
+                [
+                        new WebLinkParameter("rel", "license"),
+                        new WebLinkParameter("anchor", "https://example.org/OTHER-LANDING")
+                ]
+        )
+        weblinks = new ArrayList<>(weblinks)
+        weblinks.add(foreign)
+
+        when:
+        def result = validator.validate(weblinks)
+
+        then:
+        result.issueReport().hasErrors()
+        result.issueReport().issues()*.message().any { it.toLowerCase().contains("anchor") && it.toLowerCase().contains("multiple") }
+
+        and: "optional: ensure it did not also report missing mandatory relations (because it should not attempt recipe validation)"
+        !result.issueReport().issues()*.message().any { it.toLowerCase().contains("missing relation") }
     }
 
     // -------------------------

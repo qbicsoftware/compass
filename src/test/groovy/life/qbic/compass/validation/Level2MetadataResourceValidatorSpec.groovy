@@ -21,7 +21,7 @@ class Level2MetadataResourceValidatorSpec extends Specification implements Offic
         !result.issueReport().hasErrors()
 
         and:
-        def describesTargets = result.signPostingView().withRelationType("describes")*.target
+        def describesTargets = result.signPostingView().withRelationType("describes")*.target()
         describesTargets.contains(URI.create("https://example.org/page/7507"))
     }
 
