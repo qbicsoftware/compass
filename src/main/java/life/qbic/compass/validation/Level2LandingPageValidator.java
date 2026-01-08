@@ -34,9 +34,9 @@ import life.qbic.linksmith.spi.WebLinkValidator.IssueType;
  * Therefore:
  * </p>
  * <ul>
- *   <li>If any {@link WebLink} has a missing {@code anchor} value, an {@link IssueType#ERROR} is recorded.</li>
+ *   <li>If any {@link WebLink} has a missing {@code anchor} value, an {@link IssueType#ERROR} is recorded for its link target and recipe validation is aborted early. No cardinality validation will be done in this case.</li>
  *   <li>If multiple distinct {@code anchor} values are present, an {@link IssueType#ERROR} is recorded and
- *       recipe validation is aborted early (because completeness cannot be determined reliably).</li>
+ *       recipe validation is aborted early (because completeness cannot be determined reliably). No cardinality validation will be done in this case.</li>
  * </ul>
  *
  * <h2>Relations validated</h2>
@@ -125,19 +125,21 @@ public class Level2LandingPageValidator implements SignPostingValidator {
    * Performs Landing Page recipe validation.
    *
    * <p>
-   * This method enforces the single-origin requirement:
-   * it selects the first encountered non-null {@code anchor} as the expected origin and rejects any
-   * subsequent link with a different {@code anchor}.
+   * This method enforces the single-origin requirement: it selects the first encountered non-null
+   * {@code anchor} as the expected origin and rejects any subsequent link with a different
+   * {@code anchor}.
    * </p>
    *
    * <p>
-   * During iteration, relation types are counted using {@link WebLink#rel()}, but only for links that
-   * match the selected anchor. Links with missing anchors are recorded and reported after the scan.
+   * During iteration, relation types are counted using {@link WebLink#rel()}, but only for links
+   * that match the selected anchor. Links with missing anchors are recorded and reported after the
+   * scan.
    * </p>
    *
    * <p>
-   * If multiple different anchors are found, an error is recorded and the method returns early because
-   * it cannot reliably determine whether the Landing Page recipe is complete for any single origin.
+   * If multiple different anchors are found, an error is recorded and the method returns early
+   * because it cannot reliably determine whether the Landing Page recipe is complete for any single
+   * origin.
    * </p>
    *
    * @param webLinks the input links to validate
@@ -145,42 +147,24 @@ public class Level2LandingPageValidator implements SignPostingValidator {
    */
   private void validateForLandingPage(List<WebLink> webLinks, List<Issue> issues) {
     var linksWithoutAnchor = new ArrayList<WebLink>();
-    String selectedAnchor = null;
     var recordedRelations = new HashMap<String, Integer>();
 
-    for (WebLink currentLink : webLinks) {
-      var currentAnchor = currentLink.anchor().orElse(null);
-      if (currentAnchor == null) {
-        linksWithoutAnchor.add(currentLink);
-        continue;
-      }
-      // Set the first available anchor value as selected for this context
-      if (selectedAnchor == null) {
-        selectedAnchor = currentAnchor;
-      }
-
-      // Check for equal anchors. In case of different anchors the validation fails, since
-      // we cannot reliably determine the completeness of a Landing Page recipe
-      if (currentAnchor.equals(selectedAnchor)) {
-        currentLink.rel().forEach(rel -> {
-          var currentCount = recordedRelations.getOrDefault(rel, 0);
-          recordedRelations.put(rel, currentCount + 1);
-        });
-      } else {
-        issues.add(Issue.error(
-            "Weblinks with multiple anchors are not allowed. Found new anchor '%s' but expected '%s'".formatted(
-                currentAnchor, selectedAnchor)));
-        // We can stop validation, since without a single origin, we cannot reliably validate the Landing Page recipe
-        return;
-      }
+    // Validates for a unique context (anchor)
+    var isContextUnique = Level2Util.validateForSingleAnchor(webLinks, issues, linksWithoutAnchor,
+        recordedRelations);
+    if (!isContextUnique) {
+      return;
     }
 
     // Validate and record issues for links without anchors
     // Missing anchors violate Level 2 FAIR Signposting recipes, since the origin of the link
     // cannot be determined
-    linksWithoutAnchor.forEach(link -> issues.add(Issue.error(
-        "Found weblink with missing value for 'anchor'. Link target was '%s'".formatted(
-            link.target()))));
+    if (!linksWithoutAnchor.isEmpty()) {
+      linksWithoutAnchor.forEach(link -> issues.add(Issue.error(
+          "Found weblink with missing value for 'anchor'. Link target was '%s'".formatted(
+              link.target()))));
+      return;
+    }
 
     validateCiteAs(recordedRelations, issues);
     validateDescribedBy(recordedRelations, issues);
@@ -213,8 +197,8 @@ public class Level2LandingPageValidator implements SignPostingValidator {
    * Validates presence of the {@code item} relation.
    *
    * <p>
-   * The landing page recipe requires at least one {@code item} link.
-   * This method currently checks presence only (cardinality (1..n)).
+   * The landing page recipe requires at least one {@code item} link. This method currently checks
+   * presence only (cardinality (1..n)).
    * </p>
    *
    * @param recordedRelations relation counts collected for the selected anchor context
@@ -228,8 +212,8 @@ public class Level2LandingPageValidator implements SignPostingValidator {
    * Validates presence of the {@code describedby} relation.
    *
    * <p>
-   * The landing page recipe requires at least one {@code describedby} link.
-   * This method currently checks presence only (cardinality (1..n)).
+   * The landing page recipe requires at least one {@code describedby} link. This method currently
+   * checks presence only (cardinality (1..n)).
    * </p>
    *
    * @param recordedRelations relation counts collected for the selected anchor context
@@ -284,8 +268,8 @@ public class Level2LandingPageValidator implements SignPostingValidator {
    * Validates the {@code license} relation.
    *
    * <p>
-   * The landing page recipe allows the {@code license} relation to be omitted, but if present it must
-   * occur at most once (cardinality (0,1)).
+   * The landing page recipe allows the {@code license} relation to be omitted, but if present it
+   * must occur at most once (cardinality (0,1)).
    * </p>
    *
    * @param recordedRelations relation counts collected for the selected anchor context
@@ -296,7 +280,7 @@ public class Level2LandingPageValidator implements SignPostingValidator {
     var count = recordedRelations.getOrDefault("license", 0);
     if (count > 1) {
       issues.add(Issue.error(
-          "Multiple links for with relation type 'license' are not allowed (%d). Expected a cardinality of (0,1)"
+          "Multiple links with relation type 'license' are not allowed (%d). Expected a cardinality of (0,1)"
               .formatted(count)));
     }
   }
