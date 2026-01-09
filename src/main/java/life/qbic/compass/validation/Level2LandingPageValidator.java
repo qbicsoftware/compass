@@ -3,6 +3,8 @@ package life.qbic.compass.validation;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import life.qbic.compass.model.SignPostingView;
 import life.qbic.compass.spi.SignPostingResult;
 import life.qbic.compass.spi.SignPostingValidator;
@@ -115,6 +117,7 @@ public class Level2LandingPageValidator implements SignPostingValidator {
    */
   @Override
   public SignPostingResult validate(List<WebLink> webLinks) {
+    Objects.requireNonNull(webLinks);
     var issues = new ArrayList<Issue>();
     validateForLandingPage(webLinks, issues);
 
@@ -183,7 +186,7 @@ public class Level2LandingPageValidator implements SignPostingValidator {
    * @param recordedRelations relation counts collected for the selected anchor context
    * @param issues            the list used to record validation issues
    */
-  private static void validateType(HashMap<String, Integer> recordedRelations, List<Issue> issues) {
+  private static void validateType(Map<String, Integer> recordedRelations, List<Issue> issues) {
     validatePresenceOfMandatoryRelation(recordedRelations, issues, TYPE);
     var count = recordedRelations.getOrDefault(TYPE, 0);
     if (count > 2) {
@@ -204,7 +207,7 @@ public class Level2LandingPageValidator implements SignPostingValidator {
    * @param recordedRelations relation counts collected for the selected anchor context
    * @param issues            the list used to record validation issues
    */
-  private static void validateItem(HashMap<String, Integer> recordedRelations, List<Issue> issues) {
+  private static void validateItem(Map<String, Integer> recordedRelations, List<Issue> issues) {
     validatePresenceOfMandatoryRelation(recordedRelations, issues, ITEM);
   }
 
@@ -219,7 +222,7 @@ public class Level2LandingPageValidator implements SignPostingValidator {
    * @param recordedRelations relation counts collected for the selected anchor context
    * @param issues            the list used to record validation issues
    */
-  private static void validateDescribedBy(HashMap<String, Integer> recordedRelations,
+  private static void validateDescribedBy(Map<String, Integer> recordedRelations,
       List<Issue> issues) {
     validatePresenceOfMandatoryRelation(recordedRelations, issues, DESCRIBEDBY);
   }
@@ -236,7 +239,7 @@ public class Level2LandingPageValidator implements SignPostingValidator {
    * @param relation          the relation type to validate
    */
   private static void validatePresenceOfMandatoryRelation(
-      HashMap<String, Integer> recordedRelations,
+      Map<String, Integer> recordedRelations,
       List<Issue> issues, String relation) {
     if (!recordedRelations.containsKey(relation)) {
       issues.add(Issue.error("Missing mandatory relation type '%s'".formatted(relation)));
@@ -253,7 +256,7 @@ public class Level2LandingPageValidator implements SignPostingValidator {
    * @param recordedRelations relation counts collected for the selected anchor context
    * @param issues            the list used to record validation issues
    */
-  private static void validateCiteAs(HashMap<String, Integer> recordedRelations,
+  private static void validateCiteAs(Map<String, Integer> recordedRelations,
       List<Issue> issues) {
     validatePresenceOfMandatoryRelation(recordedRelations, issues, CITE_AS);
     var count = recordedRelations.getOrDefault(CITE_AS, 0);
@@ -275,7 +278,7 @@ public class Level2LandingPageValidator implements SignPostingValidator {
    * @param recordedRelations relation counts collected for the selected anchor context
    * @param issues            the list used to record validation issues
    */
-  private static void validateLicense(HashMap<String, Integer> recordedRelations,
+  private static void validateLicense(Map<String, Integer> recordedRelations,
       List<Issue> issues) {
     var count = recordedRelations.getOrDefault("license", 0);
     if (count > 1) {

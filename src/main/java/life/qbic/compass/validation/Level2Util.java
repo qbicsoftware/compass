@@ -9,17 +9,15 @@ import life.qbic.linksmith.spi.WebLinkValidator.Issue;
  * Utility functions shared by FAIR Signposting Level 2 validators.
  *
  * <p>
- * This class provides common precondition checks required by all
- * Level 2 Signposting recipes (Landing Page, Metadata Resource, Content Resource).
- * In particular, it validates that a collection of {@link WebLink}s
- * represents a <strong>single, unambiguous link context</strong>.
+ * This class provides common precondition checks required by all Level 2 Signposting recipes
+ * (Landing Page, Metadata Resource, Content Resource). In particular, it validates that a
+ * collection of {@link WebLink}s represents a <strong>single, unambiguous link context</strong>.
  * </p>
  *
  * <h2>Conceptual background</h2>
  * <p>
- * In FAIR Signposting Level 2 (RFC 9264), links are expressed in a <em>link set</em>
- * and grouped by their {@code anchor}, which represents the origin resource
- * for which a recipe is defined.
+ * In FAIR Signposting Level 2 (RFC 9264), links are expressed in a <em>link set</em> and grouped by
+ * their {@code anchor}, which represents the origin resource for which a recipe is defined.
  * </p>
  *
  * <p>
@@ -46,8 +44,8 @@ import life.qbic.linksmith.spi.WebLinkValidator.Issue;
  * This class is stateless and thread-safe.
  * </p>
  *
- * @since 1.0.0
  * @author Sven Fillinger
+ * @since 1.0.0
  */
 final class Level2Util {
 
@@ -96,51 +94,70 @@ final class Level2Util {
    *   <li>dereference any link targets.</li>
    * </ul>
    *
-   * @param webLinks
-   *   the WebLinks to validate as a single Level 2 context
-   * @param issues
-   *   a mutable list used to record validation issues
-   * @param missingAnchor
-   *   a mutable list that will collect all WebLinks without an {@code anchor}
-   * @param relationsCount
-   *   a mutable map that will be populated with relation-type occurrence counts
-   * @return
-   *   {@code true} if all WebLinks share a single anchor context;
-   *   {@code false} if multiple distinct anchors are detected
+   * @param webLinks       the WebLinks to validate as a single Level 2 context
+   * @param issues         a mutable list used to record validation issues
+   * @param missingAnchor  a mutable list that will collect all WebLinks without an {@code anchor}
+   * @param relationsCount a mutable map that will be populated with relation-type occurrence
+   *                       counts
+   * @return {@code true} if all WebLinks share a single anchor context; {@code false} if multiple
+   * iple distinct anchors are detected
    */
   static boolean validateForSingleAnchor(
       List<WebLink> webLinks,
       List<Issue> issues,
       List<WebLink> missingAnchor,
       Map<String, Integer> relationsCount) {
-    String selectedAnchor = null;
-    for (WebLink currentLink : webLinks) {
-      var currentAnchor = currentLink.anchor().orElse(null);
-      if (currentAnchor == null) {
-        missingAnchor.add(currentLink);
-        continue;
-      }
-      // Set the first available anchor value as selected for this context
-      if (selectedAnchor == null) {
-        selectedAnchor = currentAnchor;
-      }
-
-      // Check for equal anchors. In case of different anchors the validation fails, since
-      // we cannot reliably determine the completeness of a Landing Page recipe
-      if (currentAnchor.equals(selectedAnchor)) {
-        currentLink.rel().forEach(rel -> {
-          var currentCount = relationsCount.getOrDefault(rel, 0);
-          relationsCount.put(rel, currentCount + 1);
-        });
-      } else {
-        issues.add(Issue.error(
-            "Input contains multiple anchors; context is ambiguous. Found new anchor '%s' but expected '%s'".formatted(
-                currentAnchor, selectedAnchor)));
-        // We can stop validation, since without a single origin, we cannot reliably validate the Landing Page recipe
+    AnchorHolder selectedAnchor = new AnchorHolder();
+    WebLink currentLink;
+    for (int index = 0; index < webLinks.size(); index++) {
+      currentLink = webLinks.get(index);
+      if (!processLink(currentLink, index, selectedAnchor, issues, missingAnchor, relationsCount)) {
         return false;
       }
     }
     return true;
   }
 
+  private static boolean processLink(WebLink currentLink,
+      int index,
+      AnchorHolder selectedAnchor,
+      List<Issue> issues,
+      List<WebLink> missingAnchor,
+      Map<String, Integer> relationsCount) {
+    if (currentLink == null) {
+      issues.add(Issue.error("Skipped null value for weblink at index %d".formatted(index)));
+      return true;
+    }
+    var currentAnchor = currentLink.anchor().orElse(null);
+    if (currentAnchor == null) {
+      missingAnchor.add(currentLink);
+      // Return early, no need to validate a link with unknown context
+      return true;
+    }
+
+    // Set the first available anchor value as selected for this context
+    if (selectedAnchor.value == null) {
+      selectedAnchor.value = currentAnchor;
+    }
+    // Check for equal anchors. In case of different anchors the validation fails, since
+    // we cannot reliably determine the completeness of a Landing Page recipe
+    if (!currentAnchor.equals(selectedAnchor.value)) {
+      issues.add(Issue.error(
+          "Input contains multiple anchors; context is ambiguous. Found new anchor '%s' but expected '%s'".formatted(
+              currentAnchor, selectedAnchor)));
+      // We can stop validation, since without a single origin, we cannot reliably validate the Landing Page recipe
+      return false;
+    }
+
+    currentLink.rel().forEach(rel -> {
+      var currentCount = relationsCount.getOrDefault(rel, 0);
+      relationsCount.put(rel, currentCount + 1);
+    });
+
+    return true;
+  }
+
+  private static final class AnchorHolder {
+    String value;
+  }
 }

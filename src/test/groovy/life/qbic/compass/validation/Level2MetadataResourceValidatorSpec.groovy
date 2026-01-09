@@ -166,9 +166,8 @@ class Level2MetadataResourceValidatorSpec extends Specification {
         def result = validator.validate(webLinks)
 
         then:
-        // Depending on your design, you might throw NPE instead of reporting.
-        // If you throw, change this test accordingly.
-        result.issueReport().hasErrors()
+        // null values for passed weblink collections are skipped and recorded as warning
+        result.issueReport().hasWarnings()
 
         where:
         caseName                     | webLinks
