@@ -121,7 +121,12 @@ public class Level2LandingPageValidator implements SignPostingValidator {
     var issues = new ArrayList<Issue>();
     validateForLandingPage(webLinks, issues);
 
-    return new SignPostingResult(new SignPostingView(webLinks), new IssueReport(issues));
+    return new SignPostingResult(
+        new SignPostingView(
+            webLinks.stream()
+                .filter(Objects::nonNull)
+                .toList()),
+        new IssueReport(issues));
   }
 
   /**

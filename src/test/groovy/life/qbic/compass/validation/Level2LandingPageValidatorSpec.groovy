@@ -9,7 +9,7 @@ import spock.lang.Unroll
 import java.nio.charset.StandardCharsets
 import java.util.regex.Pattern
 
-class Level2LandingPageValidatorSpec extends Specification implements OfficialSignpostingLevel2Fixture {
+class Level2LandingPageValidatorSpec extends Specification {
 
     def parser = LinkSetJsonParser.create()
     // --- Official fixture (inline here to keep the spec self-contained) ---

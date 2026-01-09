@@ -129,7 +129,12 @@ public class Level2MetadataResourceValidator implements SignPostingValidator {
     var issues = new ArrayList<Issue>();
     validateForMetadataResource(webLinks, issues);
 
-    return new SignPostingResult(new SignPostingView(webLinks), new IssueReport(issues));
+    return new SignPostingResult(
+        new SignPostingView(
+            webLinks.stream()
+                .filter(Objects::nonNull)
+                .toList()),
+        new IssueReport(issues));
   }
 
   /**
