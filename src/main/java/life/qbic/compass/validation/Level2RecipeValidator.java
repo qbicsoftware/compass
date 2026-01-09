@@ -10,7 +10,7 @@ import life.qbic.linksmith.model.WebLink;
  *
  * @since <version tag>
  */
-public class Level2SignPostingValidator implements SignPostingValidator {
+public class Level2RecipeRoutingValidator implements SignPostingValidator {
 
   @Override
   public SignPostingResult validate(List<WebLink> webLinks) {
