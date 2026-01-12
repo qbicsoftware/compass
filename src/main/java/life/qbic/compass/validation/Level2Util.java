@@ -16,7 +16,7 @@ import life.qbic.linksmith.spi.WebLinkValidator.Issue;
  *
  * <h2>Conceptual background</h2>
  * <p>
- * In FAIR Signposting Level 2 (RFC 9264), links are expressed in a <em>link set</em> and grouped by
+ * In FAIR Signposting Level 2, links are expressed in a <em>link set</em> (RFC 9264) and grouped by
  * their {@code anchor}, which represents the origin resource for which a recipe is defined.
  * </p>
  *
@@ -100,7 +100,7 @@ final class Level2Util {
    * @param relationsCount a mutable map that will be populated with relation-type occurrence
    *                       counts
    * @return {@code true} if all WebLinks share a single anchor context; {@code false} if multiple
-   * iple distinct anchors are detected
+   * distinct anchors are detected
    */
   static boolean validateForSingleAnchor(
       List<WebLink> webLinks,
