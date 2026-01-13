@@ -84,7 +84,7 @@ public class Level2DiscoveryValidator implements SignPostingValidator {
     // 1. Validate availability of typed 'linkset' web link
     validateLinkSet(webLinks, issues);
 
-    return new SignPostingResult(new SignPostingView(webLinks), new IssueReport(issues));
+    return new SignPostingResult(new SignPostingView(webLinks), new IssueReport(issues), null);
   }
 
   /**

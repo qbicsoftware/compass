@@ -126,7 +126,8 @@ public class Level2LandingPageValidator implements SignPostingValidator {
             webLinks.stream()
                 .filter(Objects::nonNull)
                 .toList()),
-        new IssueReport(issues));
+        new IssueReport(issues),
+        null);
   }
 
   /**

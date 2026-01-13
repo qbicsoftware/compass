@@ -93,7 +93,7 @@ public class Level1SignPostingValidator implements SignPostingValidator {
     // 4. report any unsecure http-only link and links that are not using the http scheme
     validateSecureHttp(webLinks, issues);
 
-    return new SignPostingResult(new SignPostingView(webLinks), new IssueReport(issues));
+    return new SignPostingResult(new SignPostingView(webLinks), new IssueReport(issues), null);
   }
 
   private void validateSecureHttp(List<WebLink> webLinks, List<Issue> issues) {

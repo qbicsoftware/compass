@@ -70,7 +70,7 @@ public final class SignPostingProcessor {
         .flatMap(report -> report.issues().stream())
         .toList();
 
-    return new SignPostingResult(new SignPostingView(webLinks), new IssueReport(recordedIssues));
+    return new SignPostingResult(new SignPostingView(webLinks), new IssueReport(recordedIssues), null);
   }
 
   public static final class Builder {

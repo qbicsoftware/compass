@@ -132,7 +132,8 @@ public class Level2ContentResourceValidator implements SignPostingValidator {
             webLinks.stream()
                 .filter(Objects::nonNull)
                 .toList()),
-        new IssueReport(issues));
+        new IssueReport(issues),
+        null);
   }
 
   /**

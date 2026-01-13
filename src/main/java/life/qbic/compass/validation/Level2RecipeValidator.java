@@ -211,7 +211,7 @@ public class Level2RecipeValidator implements SignPostingValidator {
     for (var entrySet : groupedByAnchor.entrySet()) {
       validateRecipe(entrySet.getKey(), entrySet.getValue(), issues);
     }
-    return new SignPostingResult(new SignPostingView(nonNullLinks), new IssueReport(issues));
+    return new SignPostingResult(new SignPostingView(nonNullLinks), new IssueReport(issues), null);
   }
 
   /**

@@ -1,5 +1,6 @@
 package life.qbic.compass.spi;
 
+import life.qbic.compass.model.Level2LinksetView;
 import life.qbic.compass.model.SignPostingView;
 import life.qbic.linksmith.model.WebLink;
 import life.qbic.linksmith.spi.WebLinkValidator.IssueReport;
@@ -44,5 +45,5 @@ import life.qbic.linksmith.spi.WebLinkValidator.IssueReport;
  *
  * @author Sven Fillinger
  */
-public record SignPostingResult(SignPostingView signPostingView, IssueReport issueReport) {
+public record SignPostingResult(SignPostingView signPostingView, IssueReport issueReport, Level2LinksetView level2LinksetView) {
 }
