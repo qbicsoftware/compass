@@ -166,8 +166,8 @@ class Level2MetadataResourceValidatorSpec extends Specification {
         def result = validator.validate(webLinks)
 
         then:
-        // null values for passed weblink collections are skipped and recorded as warning
-        result.issueReport().hasWarnings()
+        // null values for passed weblink collections are skipped and recorded as error
+        result.issueReport().hasErrors()
 
         where:
         caseName                     | webLinks

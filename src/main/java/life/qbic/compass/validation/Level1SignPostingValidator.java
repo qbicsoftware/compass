@@ -10,55 +10,60 @@ import life.qbic.linksmith.spi.WebLinkValidator.Issue;
 import life.qbic.linksmith.spi.WebLinkValidator.IssueReport;
 
 /**
- * Signposting validator for <strong>Level&nbsp;1</strong> of the FAIR Signposting profile.
+ * Validator for the FAIR Signposting <strong>Level&nbsp;1</strong> profile.
+ *
+ * <h2>Scope and normative target</h2>
  * <p>
- * Level&nbsp;1 Signposting describes the <em>minimal, inline</em> set of typed links that a
- * scholarly object should expose to enable reliable discovery, citation, attribution,
- * and access to descriptive metadata. These links are typically provided via HTTP
- * {@code Link} headers or HTML {@code <link>} elements and are directly attached to the
- * resource itself.
+ * FAIR Signposting Level&nbsp;1 defines a <em>minimal</em> set of typed links intended to support
+ * robust machine navigation of scholarly objects. Importantly, in Level&nbsp;1 only the
+ * <strong>landing page recipe</strong> is <strong>mandatory</strong> and therefore
+ * <strong>normative</strong>.
  * </p>
  *
  * <p>
- * This validator operates on a list of already parsed {@link WebLink}s and performs
- * structural and semantic checks according to the Level&nbsp;1 FAIR Signposting
- * recommendations:
+ * Typed links exposed on <em>content resources</em> and <em>metadata resources</em> are
+ * <strong>recommended</strong> in Level&nbsp;1 but not required by the profile. Consequently, this
+ * validator deliberately does <strong>not</strong> attempt to infer, validate, or enforce completeness
+ * of Level&nbsp;1 content/metadata resource recipes. It validates only the Level&nbsp;1
+ * <strong>landing page</strong> expectations on the provided links.
+ * </p>
+ *
+ * <h2>What this validator checks</h2>
+ * <p>
+ * The validator operates on a list of already parsed {@link WebLink}s (e.g., obtained from HTTP
+ * {@code Link} headers or HTML {@code <link>} elements) and records issues according to the
+ * Level&nbsp;1 landing page recipe:
  * </p>
  *
  * <ul>
  *   <li>
- *     <strong>{@code rel="author"}</strong> – recommended; a warning is raised if no author
- *     relation is present (cardinality 0..n).
+ *     <strong>{@code rel="cite-as"}</strong> – <strong>mandatory</strong> for the landing page;
+ *     exactly one link is expected (error if missing or duplicated).
  *   </li>
  *   <li>
- *     <strong>{@code rel="cite-as"}</strong> – mandatory; exactly one occurrence is expected,
- *     and an error is raised if missing or duplicated.
+ *     <strong>{@code rel="describedby"}</strong> – <strong>mandatory</strong> for the landing page;
+ *     at least one link is expected (error if missing).
  *   </li>
  *   <li>
- *     <strong>{@code rel="describedby"}</strong> – mandatory; at least one occurrence is required
- *     to point to metadata describing the resource.
+ *     <strong>{@code rel="author"}</strong> – <strong>recommended</strong> for the landing page;
+ *     a warning is recorded if absent (cardinality 0..n).
  *   </li>
  *   <li>
- *     <strong>Target URI scheme</strong> – all link targets are checked for secure transport;
- *     non-HTTPS or non-HTTP targets result in warnings.
+ *     <strong>Transport security</strong> – emits warnings for link targets that are not HTTPS.
  *   </li>
  * </ul>
  *
- * <p>
- * The validator is intentionally <strong>non-fatal</strong> where possible: it collects
- * errors and warnings for all detected issues instead of aborting on the first violation.
- * </p>
+ * <h2>Non-goals</h2>
+ * <ul>
+ *   <li>No dereferencing of link targets (no network access).</li>
+ *   <li>No validation of metadata payloads or identifier persistence.</li>
+ *   <li>No enforcement of Level&nbsp;1 recommendations for content/metadata resources.</li>
+ * </ul>
  *
  * <p>
- * This class does <strong>not</strong> dereference links, verify identifier persistence,
- * or validate the contents of metadata resources. Its responsibility is limited to
- * validating the presence, cardinality, and basic properties of Level&nbsp;1 Signposting
- * relations as they appear in the provided WebLinks.
- * </p>
- *
- * <p>
- * The resulting {@link SignPostingView} is a semantic convenience wrapper around the
- * original WebLinks; no links are filtered or modified during validation.
+ * The returned {@link SignPostingView} is a semantic, read-only convenience wrapper around the
+ * original WebLinks. Validation issues are reported via {@link IssueReport}; the view itself does
+ * not modify or filter links.
  * </p>
  *
  * @author Sven Fillinger

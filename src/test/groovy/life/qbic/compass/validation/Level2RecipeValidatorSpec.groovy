@@ -8,9 +8,6 @@ import life.qbic.linksmith.model.WebLinkParameter
 import life.qbic.linksmith.spi.WebLinkValidator.Issue
 import life.qbic.linksmith.spi.WebLinkValidator.IssueReport
 import spock.lang.Specification
-import spock.lang.Unroll
-
-import java.net.URI
 
 class Level2RecipeValidatorSpec extends Specification {
 
