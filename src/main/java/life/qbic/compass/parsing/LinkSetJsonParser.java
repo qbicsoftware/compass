@@ -48,7 +48,7 @@ import tools.jackson.databind.json.JsonMapper;
  *
  * @author Sven Fillinger
  */
-public class LinkSetJsonParser implements LinkSetParser {
+public final class LinkSetJsonParser implements LinkSetParser {
 
   /**
    * Creates a new {@link LinkSetJsonParser}.
