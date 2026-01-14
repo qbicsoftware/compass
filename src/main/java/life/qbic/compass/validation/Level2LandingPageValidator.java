@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import life.qbic.compass.model.SignPostingView;
-import life.qbic.compass.spi.SignPostingResult;
+import life.qbic.compass.model.SignPostingResult;
 import life.qbic.compass.spi.SignPostingValidator;
 import life.qbic.linksmith.model.WebLink;
 import life.qbic.linksmith.spi.WebLinkValidator.Issue;
@@ -126,7 +126,8 @@ public class Level2LandingPageValidator implements SignPostingValidator {
             webLinks.stream()
                 .filter(Objects::nonNull)
                 .toList()),
-        new IssueReport(issues));
+        new IssueReport(issues),
+        null);
   }
 
   /**

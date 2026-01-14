@@ -1,25 +1,34 @@
 package life.qbic.compass.validation;
 
+import static java.util.Objects.requireNonNull;
+
+import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import life.qbic.compass.model.ContentResourceView;
+import life.qbic.compass.model.LandingPageView;
+import life.qbic.compass.model.Level2LinksetView;
+import life.qbic.compass.model.MetadataResourceView;
+import life.qbic.compass.model.MissingOriginLink;
 import life.qbic.compass.model.SignPostingView;
-import life.qbic.compass.spi.SignPostingResult;
+import life.qbic.compass.model.SignPostingResult;
 import life.qbic.compass.spi.SignPostingValidator;
 import life.qbic.linksmith.model.WebLink;
 import life.qbic.linksmith.spi.WebLinkValidator.Issue;
 import life.qbic.linksmith.spi.WebLinkValidator.IssueReport;
 
 /**
- * Routes Level 2 FAIR Signposting validation to the appropriate recipe validator per anchor context.
+ * Routes Level 2 FAIR Signposting validation to the appropriate recipe validator per anchor
+ * context.
  *
  * <p>
  * In FAIR Signposting Level 2, typed links for multiple resources (e.g., landing page, content
- * resources, metadata resources) are commonly provided together via a Link Set (RFC 9264).
- * Each resource is represented by a <em>link context object</em>, which is mapped to RFC 8288 style
+ * resources, metadata resources) are commonly provided together via a Link Set (RFC 9264). Each
+ * resource is represented by a <em>link context object</em>, which is mapped to RFC 8288 style
  * {@link WebLink}s using the {@code anchor} parameter as the <em>origin</em> (context) of a link.
  * </p>
  *
@@ -102,8 +111,8 @@ import life.qbic.linksmith.spi.WebLinkValidator.IssueReport;
  *   </li>
  * </ul>
  *
- * @since 1.0.0
  * @author Sven Fillinger
+ * @since 1.0.0
  */
 public class Level2RecipeValidator implements SignPostingValidator {
 
@@ -122,9 +131,9 @@ public class Level2RecipeValidator implements SignPostingValidator {
       SignPostingValidator metadataResourceValidator,
       SignPostingValidator contentResourceValidator
   ) {
-    this.landingPageValidator = Objects.requireNonNull(landingPageValidator);
-    this.metadataResourceValidator = Objects.requireNonNull(metadataResourceValidator);
-    this.contentResourceValidator = Objects.requireNonNull(contentResourceValidator);
+    this.landingPageValidator = requireNonNull(landingPageValidator);
+    this.metadataResourceValidator = requireNonNull(metadataResourceValidator);
+    this.contentResourceValidator = requireNonNull(contentResourceValidator);
   }
 
   /**
@@ -145,14 +154,14 @@ public class Level2RecipeValidator implements SignPostingValidator {
    * Creates a recipe validator with user-provided validators for each recipe type.
    *
    * <p>
-   * This factory method is primarily intended for testing and advanced customization.
-   * Provided validators must be non-null and must adhere to the {@link SignPostingValidator}
-   * contract (in particular: returning a non-null {@link SignPostingResult}).
+   * This factory method is primarily intended for testing and advanced customization. Provided
+   * validators must be non-null and must adhere to the {@link SignPostingValidator} contract (in
+   * particular: returning a non-null {@link SignPostingResult}).
    * </p>
    *
-   * @param landingPageValidator       validator for the landing page recipe
-   * @param metadataResourceValidator  validator for the metadata resource recipe
-   * @param contentResourceValidator   validator for the content resource recipe
+   * @param landingPageValidator      validator for the landing page recipe
+   * @param metadataResourceValidator validator for the metadata resource recipe
+   * @param contentResourceValidator  validator for the content resource recipe
    * @return a configured {@link Level2RecipeValidator}
    * @throws NullPointerException if any validator is {@code null}
    */
@@ -169,8 +178,8 @@ public class Level2RecipeValidator implements SignPostingValidator {
 
 
   /**
-   * Validates a mixed collection of Level 2 Signposting {@link WebLink}s by routing them per
-   * anchor context to recipe-specific validators.
+   * Validates a mixed collection of Level 2 Signposting {@link WebLink}s by routing them per anchor
+   * context to recipe-specific validators.
    *
    * <p>
    * The method performs three phases:
@@ -192,26 +201,56 @@ public class Level2RecipeValidator implements SignPostingValidator {
    */
   @Override
   public SignPostingResult validate(List<WebLink> webLinks) {
-    Objects.requireNonNull(webLinks);
+    requireNonNull(webLinks);
+    // container with mutable lists for the recipe view aggregations
+    // for validated landing pages, metadata resources and content resources
+    var recipeViews = new RecipeViewsContainer(
+        new ArrayList<>(),
+        new ArrayList<>(),
+        new ArrayList<>());
+
+    // some collectors for the running validation
     var issues = new ArrayList<Issue>();
     var nonNullLinks = new ArrayList<WebLink>();
+    var missingOriginLinks = new ArrayList<MissingOriginLink>();
     WebLink currentWebLink;
+
     // 1. Filter out null elements and report them as issues with the element's index
     for (int index = 0; index < webLinks.size(); index++) {
       currentWebLink = webLinks.get(index);
       if (currentWebLink == null) {
-        issues.add(Issue.error("Input list of weblinks contained null element at index %d".formatted(index)));
+        issues.add(Issue.error(
+            "Input list of weblinks contained null element at index %d".formatted(index)));
         continue;
+      }
+      if (currentWebLink.anchor().isEmpty()) {
+        issues.add(Issue.error("Missing origin (anchor) for weblink at index %d".formatted(index)));
+        missingOriginLinks.add(new MissingOriginLink(index, currentWebLink));
       }
       nonNullLinks.add(currentWebLink);
     }
 
-    // 2. Group all weblinks by their anchor value => one recipe per origin
+    // 2. Group all weblinks by their anchor value => one recipe per origin / link context
     var groupedByAnchor = groupByAnchor(nonNullLinks);
+
+    // 3. Validate every weblink collection with same link origin for known FAIR Signposting recipes
     for (var entrySet : groupedByAnchor.entrySet()) {
-      validateRecipe(entrySet.getKey(), entrySet.getValue(), issues);
+      validateRecipe(
+          // serialised origin value (the anchor value of a link context object)
+          entrySet.getKey(),
+          // list of weblinks per origin
+          entrySet.getValue(),
+          issues,
+          recipeViews);
     }
-    return new SignPostingResult(new SignPostingView(nonNullLinks), new IssueReport(issues));
+    return new SignPostingResult(
+        new SignPostingView(nonNullLinks),
+        new IssueReport(issues),
+        new Level2LinksetView(
+            recipeViews.landingPageViews,
+            recipeViews.contentResourceViews,
+            recipeViews.metadataResourceViews,
+            missingOriginLinks));
   }
 
   /**
@@ -219,34 +258,58 @@ public class Level2RecipeValidator implements SignPostingValidator {
    * produced by the delegated validator.
    *
    * <p>
-   * If the recipe cannot be determined (none of the heuristic signals match), an {@code ERROR}
-   * is recorded for the given anchor.
+   * If the recipe cannot be determined (none of the heuristic signals match), an {@code ERROR} is
+   * recorded for the given anchor.
    * </p>
    *
-   * @param anchor the anchor (origin) representing the resource context
+   * @param anchor the anchor value (RFC 8288) that defines the link origin (FAIR Signposting) or link context (RFC 9264)
    * @param links  the links belonging to the anchor context
    * @param issues the shared issue sink collecting all validation findings
    */
-  private void validateRecipe(String anchor, List<WebLink> links, ArrayList<Issue> issues) {
+  private void validateRecipe(
+      String anchor,
+      List<WebLink> links,
+      List<Issue> issues,
+      RecipeViewsContainer recipeViews
+  ) {
+    // According to RFC 9264 section 4.2.2,
+    URI origin = validateLinkContext(anchor);
+    if (origin == null) {
+      issues.add(Issue.error("Invalid URI for anchor: '%s'".formatted(anchor)));
+      return;
+    }
+
+    // Simple heuristic for landing page recipes
     if (looksLikeLandingPage(links)) {
-      validateAndSafelyRecordIssues(() -> landingPageValidator.validate(links),
+      var result = validateAndSafelyRecordIssues(() -> landingPageValidator.validate(links),
           issues,
           () -> Issue.error(
               NULL_SIGNPOSTING_RESULT_ERROR.formatted(anchor)));
+      if (result != null && !result.issueReport().hasErrors()) {
+        recipeViews.landingPageViews.add(new LandingPageView(origin, links));
+      }
       return;
     }
+    // Simple heuristic for metadata resource recipes
     if (looksLikeMetadataResource(links)) {
-      validateAndSafelyRecordIssues(() -> metadataResourceValidator.validate(links),
+      var result = validateAndSafelyRecordIssues(() -> metadataResourceValidator.validate(links),
           issues,
           () -> Issue.error(
               NULL_SIGNPOSTING_RESULT_ERROR.formatted(anchor)));
+      if (result != null && !result.issueReport().hasErrors()) {
+        recipeViews.metadataResourceViews.add(new MetadataResourceView(origin, links));
+      }
       return;
     }
+    // Simple heuristic for content resource recipes
     if (looksLikeContentResource(links)) {
-      validateAndSafelyRecordIssues(() -> contentResourceValidator.validate(links),
+      var result = validateAndSafelyRecordIssues(() -> contentResourceValidator.validate(links),
           issues,
           () -> Issue.error(
               NULL_SIGNPOSTING_RESULT_ERROR.formatted(anchor)));
+      if (result != null && !result.issueReport().hasErrors()) {
+        recipeViews.contentResourceViews.add(new ContentResourceView(origin, links));
+      }
       return;
     }
     issues.add(Issue.error("Unknown FAIR Signposting recipe for anchor '%s'".formatted(anchor)));
@@ -256,31 +319,48 @@ public class Level2RecipeValidator implements SignPostingValidator {
    * Executes a delegated validator call and appends its issues to the shared issue list.
    *
    * <p>
-   * This method hardens delegation by handling unexpected {@code null} results:
-   * if the supplied validator returns {@code null}, {@code nullHandler} is used to produce an
-   * {@link Issue} that is appended to {@code issues}.
+   * This method hardens delegation by handling unexpected {@code null} results: if the supplied
+   * validator returns {@code null}, {@code issueSupplierOnNull} is used to produce an {@link Issue}
+   * that is appended to {@code issues}.
    * </p>
    *
    * <p>
    * Note: This method assumes that a non-null {@link SignPostingResult} contains a non-null
-   * {@link IssueReport}. If a delegated validator violates that contract, a {@link NullPointerException}
-   * may still occur and should be considered a bug in the delegated validator.
+   * {@link IssueReport}. If a delegated validator violates that contract, a
+   * {@link NullPointerException} may still occur and should be considered a bug in the delegated
+   * validator.
    * </p>
    *
-   * @param validator   supplier performing validation and returning a {@link SignPostingResult}
-   * @param issues      shared sink to append issues to
-   * @param nullHandler supplier producing an issue if {@code validator.get()} returns {@code null}
+   * @param validator           supplier performing validation and returning a
+   *                            {@link SignPostingResult}
+   * @param issues              shared sink to append issues to
+   * @param issueSupplierOnNull supplier producing an issue if {@code validator.get()} returns
+   *                            {@code null}
+   * @return the {@link SignPostingResult} from the passed validator
    */
-  private static void validateAndSafelyRecordIssues(
+  private static SignPostingResult validateAndSafelyRecordIssues(
       Supplier<SignPostingResult> validator,
       List<Issue> issues,
-      Supplier<Issue> nullHandler) {
+      Supplier<Issue> issueSupplierOnNull) {
+    requireNonNull(validator);
+    requireNonNull(issues);
+    requireNonNull(issueSupplierOnNull);
+
     var result = validator.get();
     if (result == null) {
-      issues.add(nullHandler.get());
-      return;
+      issues.add(issueSupplierOnNull.get());
+      return null;
     }
     issues.addAll(result.issueReport().issues());
+    return result;
+  }
+
+  private static URI validateLinkContext(String uri) {
+    try {
+      return URI.create(uri);
+    } catch (NullPointerException | IllegalArgumentException e) {
+      return null;
+    }
   }
 
   /**
@@ -297,7 +377,6 @@ public class Level2RecipeValidator implements SignPostingValidator {
   private static Map<String, List<WebLink>> groupByAnchor(List<WebLink> weblinks) {
     var linksWithAnchor = weblinks.stream()
         .filter(link -> link.anchor().isPresent()).toList();
-    // TODO report missing anchor values to the client!
     return linksWithAnchor.stream()
         .collect(Collectors.groupingBy(link -> link.anchor().orElse("")));
   }
@@ -313,7 +392,7 @@ public class Level2RecipeValidator implements SignPostingValidator {
    * @param recipe the links for one anchor context
    * @return true if the group is classified as landing page recipe
    */
-  private static boolean looksLikeLandingPage(List<WebLink> recipe) {
+  private static boolean looksLikeLandingPage(Collection<WebLink> recipe) {
     for (WebLink link : recipe) {
       if (link == null) {
         continue;
@@ -336,7 +415,7 @@ public class Level2RecipeValidator implements SignPostingValidator {
    * @param recipe the links for one anchor context
    * @return true if the group is classified as metadata resource recipe
    */
-  private static boolean looksLikeMetadataResource(List<WebLink> recipe) {
+  private static boolean looksLikeMetadataResource(Collection<WebLink> recipe) {
     for (WebLink link : recipe) {
       if (link == null) {
         continue;
@@ -359,7 +438,7 @@ public class Level2RecipeValidator implements SignPostingValidator {
    * @param recipe the links for one anchor context
    * @return true if the group is classified as content resource recipe
    */
-  private static boolean looksLikeContentResource(List<WebLink> recipe) {
+  private static boolean looksLikeContentResource(Collection<WebLink> recipe) {
     for (WebLink link : recipe) {
       if (link == null) {
         continue;
@@ -369,5 +448,20 @@ public class Level2RecipeValidator implements SignPostingValidator {
       }
     }
     return false;
+  }
+
+  private static class RecipeViewsContainer {
+
+    final List<LandingPageView> landingPageViews;
+    final List<ContentResourceView> contentResourceViews;
+    final List<MetadataResourceView> metadataResourceViews;
+
+    RecipeViewsContainer(List<LandingPageView> landingPageViews,
+        List<MetadataResourceView> metadataResourceViews,
+        List<ContentResourceView> contentResourceViews) {
+      this.landingPageViews = requireNonNull(landingPageViews);
+      this.contentResourceViews = requireNonNull(contentResourceViews);
+      this.metadataResourceViews = requireNonNull(metadataResourceViews);
+    }
   }
 }

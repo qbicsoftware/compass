@@ -1,9 +1,7 @@
 package life.qbic.compass.model;
 
-import java.net.URI;
 import java.util.List;
 import java.util.Objects;
-import life.qbic.compass.spi.SignPostingResult;
 import life.qbic.compass.spi.SignPostingValidator;
 import life.qbic.linksmith.model.WebLink;
 
@@ -116,49 +114,51 @@ public record SignPostingView(List<WebLink> webLinks) {
   }
 
   /**
-   * Returns the targets of all WebLinks with relation type {@code rel=cite-as}.
+   * Returns all WebLinks with relation type {@code rel=cite-as}.
    *
    * <p>
    * In Signposting Level 1, this relation identifies a persistent identifier for the scholarly
    * object.
    * </p>
    *
-   * @return a list of {@link URI}s for {@code cite-as} links
+   * @return a list of {@link WebLink}s for {@code cite-as}-typed links
    */
-  public List<URI> citeAs() {
+  public List<WebLink> citeAs() {
     return withRelationType("cite-as").stream()
-        .map(WebLink::target)
         .toList();
   }
 
   /**
-   * Returns the targets of all WebLinks with relation type {@code rel=describedby}.
+   * Returns all WebLinks with relation type {@code rel=describedby}.
    *
    * <p>
    * This relation typically points to metadata resources describing the scholarly object.
    * </p>
    *
-   * @return a list of {@link URI}s for {@code describedby} links
+   * @return a list of {@link WebLink}s for {@code describedby}-typed links
    */
-  public List<URI> describedBy() {
+  public List<WebLink> describedBy() {
     return withRelationType("describedby").stream()
-        .map(WebLink::target)
         .toList();
   }
 
   /**
-   * Returns the targets of all WebLinks with relation type {@code rel=linkset}.
+   * Returns WebLinks with relation type {@code rel=linkset}.
    *
    * <p>
-   * In Signposting Level 2, these URIs identify Link Set resources that must be retrieved and
-   * processed separately by client code.
+   * In Signposting Level 2, these typed links identify Linkset resources (<a
+   * href="https://www.rfc-editor.org/rfc/rfc9264.html">RFC 9264</a>) that must be retrieved and
+   * processed separately by client code. Clients can use the provided implementations of the
+   * {@link life.qbic.compass.spi.LinkSetParser} interface, like
+   * {@link life.qbic.compass.parsing.LinkSetInlineParser} or
+   * {@link life.qbic.compass.parsing.LinkSetJsonParser} to get access to the encoded FAIR
+   * Signposting profile information.
    * </p>
    *
-   * @return a list of {@link URI}s identifying Link Set resources
+   * @return a list of {@link WebLink}s identifying Link Set resources
    */
-  public List<URI> linksets() {
+  public List<WebLink> linksets() {
     return withRelationType("linkset").stream()
-        .map(WebLink::target)
         .toList();
   }
 }

@@ -1,6 +1,7 @@
 package life.qbic.compass.spi;
 
 import java.util.List;
+import life.qbic.compass.model.SignPostingResult;
 import life.qbic.linksmith.model.WebLink;
 
 /**
