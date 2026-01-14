@@ -68,7 +68,7 @@ import life.qbic.linksmith.spi.WebLinkValidator.IssueReport;
  *
  * @author Sven Fillinger
  */
-public class Level1SignPostingValidator implements SignPostingValidator {
+public final class Level1SignPostingValidator implements SignPostingValidator {
 
   private Level1SignPostingValidator() {
   }

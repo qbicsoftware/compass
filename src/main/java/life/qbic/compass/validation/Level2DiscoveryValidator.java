@@ -62,7 +62,7 @@ import life.qbic.linksmith.spi.WebLinkValidator.IssueReport;
  *
  * @author Sven Fillinger
  */
-public class Level2DiscoveryValidator implements SignPostingValidator {
+public final class Level2DiscoveryValidator implements SignPostingValidator {
 
   private Level2DiscoveryValidator() {
   }

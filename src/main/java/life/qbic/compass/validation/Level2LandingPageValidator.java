@@ -62,7 +62,7 @@ import life.qbic.linksmith.spi.WebLinkValidator.IssueType;
  * @author Sven Fillinger
  * @since 1.0.0
  */
-public class Level2LandingPageValidator implements SignPostingValidator {
+public final class Level2LandingPageValidator implements SignPostingValidator {
 
   /**
    * Relation type {@code cite-as}.
