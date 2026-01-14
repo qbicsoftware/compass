@@ -1,6 +1,8 @@
 # Compass
 
-A Java library to process and validate FAIR signposting profiles based on [Linksmith](https://github.com/qbicsoftware/linksmith).
+A Java library to validate and access FAIR Signposting recipes from web resources. 
+
+Compass uses [Linksmith](https://github.com/qbicsoftware/linksmith) for the semantic Web Linking model based following [RFC 8288](https://datatracker.ietf.org/doc/html/rfc8288) and provides two ready-to-use parsers for FAIR Signposting Level 2 inline and JSON [Link Set](https://www.rfc-editor.org/rfc/rfc9264) serialisation formats.
 
 ## ⚠️ Development Status
 
