@@ -76,6 +76,7 @@ class Level2RecipeValidatorSpec extends Specification {
 
     private static SignPostingResult childResult(List<WebLink> links, List<Issue> issues) {
         // IMPORTANT: child validators return their own view; parent aggregates issues and builds its own.
+        // Adjust constructor if your SignPostingResult signature differs.
         new SignPostingResult(new SignPostingView(links), new IssueReport(issues), null)
     }
 
@@ -88,8 +89,20 @@ class Level2RecipeValidatorSpec extends Specification {
     }
 
     private static Level2LinksetView linksetView(SignPostingResult r) {
-        // Adjust if your accessor is named differently.
         r.level2LinksetView()
+    }
+
+    // Convenience finders for list-based view API
+    private static def landingView(Level2LinksetView v, URI origin) {
+        v.landingPages().find { it.origin() == origin }
+    }
+
+    private static def contentView(Level2LinksetView v, URI origin) {
+        v.contentResources().find { it.origin() == origin }
+    }
+
+    private static def metadataView(Level2LinksetView v, URI origin) {
+        v.metadataResources().find { it.origin() == origin }
     }
 
     // ----------------------------------------------------------------------
@@ -98,10 +111,10 @@ class Level2RecipeValidatorSpec extends Specification {
 
     private static List<WebLink> landingRecipeLinks() {
         [
-                weblink("https://doi.org/10.123/abc",              LANDING_ORIGIN, [CITE_AS]),
-                weblink("https://example.org/meta/7507/bibtex",    LANDING_ORIGIN, [DESCRIBEDBY], ["type": "application/x-bibtex"]),
-                weblink("https://example.org/file/7507/2",         LANDING_ORIGIN, [ITEM],       ["type": "text/csv"]),
-                weblink("https://schema.org/ScholarlyArticle",     LANDING_ORIGIN, [TYPE])
+                weblink("https://doi.org/10.123/abc",           LANDING_ORIGIN, [CITE_AS]),
+                weblink("https://example.org/meta/7507/bibtex", LANDING_ORIGIN, [DESCRIBEDBY], ["type": "application/x-bibtex"]),
+                weblink("https://example.org/file/7507/2",      LANDING_ORIGIN, [ITEM],       ["type": "text/csv"]),
+                weblink("https://schema.org/ScholarlyArticle",  LANDING_ORIGIN, [TYPE])
         ]
     }
 
@@ -119,7 +132,7 @@ class Level2RecipeValidatorSpec extends Specification {
     }
 
     // ----------------------------------------------------------------------
-    // Routing tests + new Level2LinksetView assertions
+    // Routing tests + Level2LinksetView list assertions
     // ----------------------------------------------------------------------
 
     def "routes landing-page recipe to LandingPageValidator, aggregates its issues, and records LandingPageView"() {
@@ -141,18 +154,18 @@ class Level2RecipeValidatorSpec extends Specification {
         and: "base view contains all non-null links"
         result.signPostingView().webLinks().size() == input.size()
 
-        and: "Level2LinksetView contains exactly one landing page origin"
+        and: "Level2LinksetView contains exactly one landing page view with the expected origin"
         def v = linksetView(result)
         v != null
-        v.landingPages().keySet() == [LANDING_ORIGIN] as Set
+        v.landingPages().size() == 1
         v.contentResources().isEmpty()
         v.metadataResources().isEmpty()
         v.missingOriginLinks().isEmpty()
 
-        and: "landing page view has the expected links"
-        v.landingPages().get(LANDING_ORIGIN) != null
-        // If LandingPageView exposes webLinks or signPostingView, adapt the assertion:
-        v.landingPages().get(LANDING_ORIGIN).webLinks().size() == input.size()
+        and:
+        def lp = landingView(v, LANDING_ORIGIN)
+        lp != null
+        lp.webLinks().size() == input.size()
     }
 
     def "routes metadata recipe to MetadataResourceValidator and records MetadataResourceView"() {
@@ -175,13 +188,16 @@ class Level2RecipeValidatorSpec extends Specification {
 
         and:
         def v = linksetView(result)
+        v != null
         v.landingPages().isEmpty()
         v.contentResources().isEmpty()
-        v.metadataResources().keySet() == [META_ORIGIN] as Set
+        v.metadataResources().size() == 1
         v.missingOriginLinks().isEmpty()
 
         and:
-        v.metadataResources().get(META_ORIGIN).webLinks().size() == input.size()
+        def mv = metadataView(v, META_ORIGIN)
+        mv != null
+        mv.webLinks().size() == input.size()
     }
 
     def "routes content recipe to ContentResourceValidator and records ContentResourceView"() {
@@ -204,13 +220,16 @@ class Level2RecipeValidatorSpec extends Specification {
 
         and:
         def v = linksetView(result)
+        v != null
         v.landingPages().isEmpty()
         v.metadataResources().isEmpty()
-        v.contentResources().keySet() == [CONTENT_ORIGIN] as Set
+        v.contentResources().size() == 1
         v.missingOriginLinks().isEmpty()
 
         and:
-        v.contentResources().get(CONTENT_ORIGIN).webLinks().size() == input.size()
+        def cv = contentView(v, CONTENT_ORIGIN)
+        cv != null
+        cv.webLinks().size() == input.size()
     }
 
     // ----------------------------------------------------------------------
@@ -228,15 +247,23 @@ class Level2RecipeValidatorSpec extends Specification {
         def result = parent.validate(input)
 
         then:
-        1 * landingValidator.validate(_)
-        1 * contentValidator.validate(_)
-        1 * metadataValidator.validate(_)
+        1 * landingValidator.validate(_) >> { List links ->
+            childResult(links as List<WebLink>, [Issue.warning("landing-warning")])
+        }
+        1 * contentValidator.validate(_) >> { List links ->
+            childResult(links as List<WebLink>, [Issue.warning("content-warning")])
+        }
+        1 * metadataValidator.validate(_) >> { List links ->
+            childResult(links as List<WebLink>, [Issue.warning("metadata-warning")])
+        }
 
         and:
         def v = linksetView(result)
-        v.landingPages().containsKey(LANDING_ORIGIN)
-        v.contentResources().containsKey(CONTENT_ORIGIN)
-        v.metadataResources().containsKey(META_ORIGIN)
+        v != null
+        println(input)
+        landingView(v, LANDING_ORIGIN) != null
+        contentView(v, CONTENT_ORIGIN) != null
+        metadataView(v, META_ORIGIN) != null
         v.missingOriginLinks().isEmpty()
     }
 
@@ -265,6 +292,7 @@ class Level2RecipeValidatorSpec extends Specification {
 
         and: "Level2LinksetView contains no typed entries"
         def v = linksetView(result)
+        v != null
         v.landingPages().isEmpty()
         v.contentResources().isEmpty()
         v.metadataResources().isEmpty()
@@ -288,22 +316,26 @@ class Level2RecipeValidatorSpec extends Specification {
         def result = parent.validate(input)
 
         then:
-        1 * contentValidator.validate(_)
+        1 * contentValidator.validate(_) >> { List links ->
+            childResult(links as List<WebLink>, [Issue.warning("content-warning")])
+        }
         0 * landingValidator.validate(_)
         0 * metadataValidator.validate(_)
 
         and:
         hasError(result)
-        // message depends on your implementation text; keep fragment-based
-        messages(result).any { it.toLowerCase().contains("missing") && (it.toLowerCase().contains("origin") || it.toLowerCase().contains("anchor")) }
+        messages(result).any {
+            it.toLowerCase().contains("missing") && (it.toLowerCase().contains("origin") || it.toLowerCase().contains("anchor"))
+        }
 
         and:
         def v = linksetView(result)
-        v.contentResources().containsKey(CONTENT_ORIGIN)
+        v != null
+        contentView(v, CONTENT_ORIGIN) != null
         v.missingOriginLinks().size() == 1
 
         and: "index is preserved"
-        // adjust property names if your MissingOriginLink differs
+        // Adjust accessor names if your MissingOriginLink differs.
         v.missingOriginLinks()[0].index() == 2
         v.missingOriginLinks()[0].webLink().target().toString() == "https://example.org/no-origin"
     }
@@ -337,6 +369,7 @@ class Level2RecipeValidatorSpec extends Specification {
 
         and: "Level2LinksetView still classifies content origin"
         def v = linksetView(result)
-        v.contentResources().containsKey(CONTENT_ORIGIN)
+        v != null
+        contentView(v, CONTENT_ORIGIN) != null
     }
 }

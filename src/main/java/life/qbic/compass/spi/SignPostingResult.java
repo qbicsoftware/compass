@@ -20,6 +20,16 @@ import life.qbic.linksmith.spi.WebLinkValidator.IssueReport;
  *     an {@link IssueReport}, which aggregates all warnings and errors detected
  *     during validation.
  *   </li>
+ * <li>
+ *     <strong>{@link Level2LinksetView}</strong> (optional),
+ *     a structured, domain-oriented interpretation of the validated links
+ *     according to <em>FAIR Signposting Level&nbsp;2</em>.
+ *     <br>
+ *     When present, this view exposes validated resource contexts
+ *     (landing pages, content resources, metadata resources) grouped by
+ *     their common <em>origin</em>, as defined by the {@code anchor} parameter
+ *     in RFC&nbsp;8288 / RFC&nbsp;9264.
+ *   </li>
  * </ul>
  *
  * <p>
@@ -45,5 +55,9 @@ import life.qbic.linksmith.spi.WebLinkValidator.IssueReport;
  *
  * @author Sven Fillinger
  */
-public record SignPostingResult(SignPostingView signPostingView, IssueReport issueReport, Level2LinksetView level2LinksetView) {
+public record SignPostingResult(
+    SignPostingView signPostingView,
+    IssueReport issueReport,
+    Level2LinksetView level2LinksetView) {
+
 }
