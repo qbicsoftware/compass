@@ -1,7 +1,7 @@
 package life.qbic.compass
 
 import life.qbic.compass.model.SignPostingView
-import life.qbic.compass.spi.SignPostingResult
+import life.qbic.compass.model.SignPostingResult
 import life.qbic.compass.spi.SignPostingValidator
 import life.qbic.compass.validation.Level1SignPostingValidator
 import life.qbic.linksmith.model.WebLink

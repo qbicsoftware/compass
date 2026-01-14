@@ -15,7 +15,7 @@ import life.qbic.compass.model.Level2LinksetView;
 import life.qbic.compass.model.MetadataResourceView;
 import life.qbic.compass.model.MissingOriginLink;
 import life.qbic.compass.model.SignPostingView;
-import life.qbic.compass.spi.SignPostingResult;
+import life.qbic.compass.model.SignPostingResult;
 import life.qbic.compass.spi.SignPostingValidator;
 import life.qbic.linksmith.model.WebLink;
 import life.qbic.linksmith.spi.WebLinkValidator.Issue;

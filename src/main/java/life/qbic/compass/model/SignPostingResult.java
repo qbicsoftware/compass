@@ -1,7 +1,5 @@
-package life.qbic.compass.spi;
+package life.qbic.compass.model;
 
-import life.qbic.compass.model.Level2LinksetView;
-import life.qbic.compass.model.SignPostingView;
 import life.qbic.linksmith.model.WebLink;
 import life.qbic.linksmith.spi.WebLinkValidator.IssueReport;
 

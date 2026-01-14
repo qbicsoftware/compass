@@ -2,15 +2,13 @@ package life.qbic.compass.validation
 
 import life.qbic.compass.model.Level2LinksetView
 import life.qbic.compass.model.SignPostingView
-import life.qbic.compass.spi.SignPostingResult
+import life.qbic.compass.model.SignPostingResult
 import life.qbic.compass.spi.SignPostingValidator
 import life.qbic.linksmith.model.WebLink
 import life.qbic.linksmith.model.WebLinkParameter
 import life.qbic.linksmith.spi.WebLinkValidator.Issue
 import life.qbic.linksmith.spi.WebLinkValidator.IssueReport
 import spock.lang.Specification
-
-import java.net.URI
 
 class Level2RecipeValidatorSpec extends Specification {
 

@@ -3,7 +3,6 @@ package life.qbic.compass.model;
 import static java.util.Objects.requireNonNull;
 
 import java.util.List;
-import life.qbic.linksmith.model.WebLink;
 
 /**
  * A structured, domain-oriented view over a validated FAIR Signposting
@@ -55,7 +54,7 @@ import life.qbic.linksmith.model.WebLink;
  * </ul>
  *
  * <p>
- * Clients are expected to inspect {@link life.qbic.compass.spi.SignPostingResult#issueReport()}
+ * Clients are expected to inspect {@link SignPostingResult#issueReport()}
  * alongside this view to assess completeness and correctness.
  * </p>
  *

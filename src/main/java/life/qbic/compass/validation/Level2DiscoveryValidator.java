@@ -3,7 +3,7 @@ package life.qbic.compass.validation;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import life.qbic.compass.spi.SignPostingResult;
+import life.qbic.compass.model.SignPostingResult;
 import life.qbic.compass.spi.SignPostingValidator;
 import life.qbic.compass.model.SignPostingView;
 import life.qbic.linksmith.model.WebLink;
