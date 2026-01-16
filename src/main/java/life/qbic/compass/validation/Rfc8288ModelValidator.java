@@ -15,24 +15,24 @@ import life.qbic.linksmith.spi.WebLinkValidator.IssueReport;
  * Internal, model-level validator for RFC 8288 ("Web Linking") constraints.
  *
  * <p><strong>Audience:</strong> This class is package-private and intended for maintainers of the
- * Compass library. It is <em>not</em> a public API and its exact issue wording is allowed to change.
- * Tests should primarily assert on the presence and type of issues (ERROR/WARNING) and on stable
- * message fragments.</p>
+ * Compass library. It is <em>not</em> a public API and its exact issue wording is allowed to
+ * change. Tests should primarily assert on the presence and type of issues (ERROR/WARNING) and on
+ * stable message fragments.</p>
  *
  * <h2>Scope</h2>
  * <p>
  * This validator checks the <em>in-memory</em> {@link WebLink} model for normative and structural
- * requirements that follow from RFC 8288 and closely related ABNF/token rules (e.g. RFC 7230
- * token production used by RFC 8288 for parameter names). It does not parse header field
- * syntax; it assumes parsing already happened upstream (e.g. by Linksmith or other tooling).
+ * requirements that follow from RFC 8288 and closely related ABNF/token rules (e.g. RFC 7230 token
+ * production used by RFC 8288 for parameter names). It does not parse header field syntax; it
+ * assumes parsing already happened upstream (e.g. by Linksmith or other tooling).
  * </p>
  *
  * <h2>Why this exists in Compass</h2>
  * <p>
- * Linksmith's {@link WebLink} model is intentionally permissive. Compass operates on {@link WebLink}
- * objects that may originate from different sources and therefore cannot assume that upstream
- * parsing/validation has enforced all RFC 8288 requirements. This validator provides a
- * deterministic safety net at the model boundary.
+ * Linksmith's {@link WebLink} model is intentionally permissive. Compass operates on
+ * {@link WebLink} objects that may originate from different sources and therefore cannot assume
+ * that upstream parsing/validation has enforced all RFC 8288 requirements. This validator provides
+ * a deterministic safety net at the model boundary.
  * </p>
  *
  * <h2>Policy decisions encoded here</h2>
@@ -62,8 +62,8 @@ import life.qbic.linksmith.spi.WebLinkValidator.IssueReport;
  *       that is done by Compass recipe validators.</li>
  * </ul>
  *
- * @since 1.0.0
  * @author Sven Fillinger
+ * @since 1.0.0
  */
 class Rfc8288ModelValidator implements WebLinkModelValidator {
 
@@ -77,8 +77,8 @@ class Rfc8288ModelValidator implements WebLinkModelValidator {
    * }</pre>
    *
    * <p>
-   * This pattern matches the registered token form and is compiled case-insensitive because RFC 8288
-   * specifies case-insensitive comparison for registered relation types.
+   * This pattern matches the registered token form and is compiled case-insensitive because RFC
+   * 8288 specifies case-insensitive comparison for registered relation types.
    * </p>
    *
    * <p><strong>Note for maintainers:</strong> Case-insensitive comparison does not mean the token
@@ -93,8 +93,8 @@ class Rfc8288ModelValidator implements WebLinkModelValidator {
    * RFC 7230 "token" character class used by RFC 8288 for parameter names.
    *
    * <p>
-   * RFC 8288 uses HTTP header parameter conventions, which rely on RFC 7230 token syntax.
-   * This pattern is applied to {@link WebLinkParameter#name()}.
+   * RFC 8288 uses HTTP header parameter conventions, which rely on RFC 7230 token syntax. This
+   * pattern is applied to {@link WebLinkParameter#name()}.
    * </p>
    */
   private static final Pattern ALLOWED_TOKEN_CHARS = Pattern.compile(
@@ -104,7 +104,8 @@ class Rfc8288ModelValidator implements WebLinkModelValidator {
    * Factory for internal use.
    *
    * <p>
-   * Kept package-private intentionally. The class is internal; callers should use Compass entry points.
+   * Kept package-private intentionally. The class is internal; callers should use Compass entry
+   * points.
    * </p>
    *
    * @return a new {@link Rfc8288ModelValidator}
@@ -122,29 +123,30 @@ class Rfc8288ModelValidator implements WebLinkModelValidator {
    * </p>
    *
    * <p>
-   * The returned {@link IssueReport} contains all findings; validation is intentionally non-fatal and
-   * does not stop after the first violation.
+   * The returned {@link IssueReport} contains all findings; validation is intentionally non-fatal
+   * and does not stop after the first violation.
    * </p>
    *
    * @param webLinks list of model links to validate (must not be {@code null})
-   * @return an {@link IssueReport} containing all recorded issues
+   * @return an {@link ModelValidationResult} containing all detected issues and the indices of
+   * weblinks with recorded ERROR
    * @throws NullPointerException if {@code webLinks} is {@code null}
    */
   @Override
-  public IssueReport validate(List<WebLink> webLinks) {
+  public ModelValidationResult validate(List<WebLink> webLinks) {
     // Throws NPE early
     Objects.requireNonNull(webLinks);
-
-    var issues = new ArrayList<Issue>();
+    var issueSink = new IssueSink(new ArrayList<>(), new boolean[webLinks.size()], 0);
     for (int index = 0; index < webLinks.size(); index++) {
+      issueSink.currentIndex = index;
       var currentLink = webLinks.get(index);
       if (currentLink == null) {
-        issues.add(Issue.error("Element is null at index %d".formatted(index)));
+        issueSink.addError("Element is null at index %d".formatted(index));
         continue;
       }
-      validate(currentLink, index, issues);
+      validate(currentLink, issueSink);
     }
-    return new IssueReport(issues);
+    return new ModelValidationResult(new IssueReport(issueSink.issues), issueSink.blockingLinkIndices);
   }
 
   /**
@@ -157,16 +159,17 @@ class Rfc8288ModelValidator implements WebLinkModelValidator {
    * </p>
    *
    * @param currentLink the link to validate (non-null)
-   * @param index       index of the link in the original list (used for error localization)
-   * @param issues      mutable sink for issues (append-only)
+   * @param issueSink   a container with the recorded issues, the current index and the recorded
+   *                    blocking weblinks
    */
-  private static void validate(WebLink currentLink, int index, List<Issue> issues) {
-    validateTargetUri(currentLink.target(), index, issues);
-    validateRelationPresence(currentLink, index, issues);
-    validateRelationTypeToken(currentLink.rel(), index, issues);
-    validateParameterNames(currentLink, index, issues);
-    validateTargetAttributeCardinality(currentLink.params(), index, issues);
-    currentLink.anchor().ifPresent(anchor -> validateAnchorAttribute(anchor, index, issues));
+  private static void validate(WebLink currentLink, IssueSink issueSink) {
+    validateTargetUri(currentLink.target(), issueSink);
+    validateRelationPresence(currentLink, issueSink);
+    validateRelationTypeToken(currentLink.rel(), issueSink);
+    validateParameterNames(currentLink, issueSink);
+    validateTargetAttributeCardinality(currentLink.params(), issueSink);
+    currentLink.anchor().ifPresent(anchor -> validateAnchorAttribute(anchor, issueSink));
+
   }
 
   /**
@@ -174,26 +177,32 @@ class Rfc8288ModelValidator implements WebLinkModelValidator {
    *
    * <p>
    * Policy: the model must contain an absolute URI for {@code anchor}. While RFC 8288 allows
-   * URI-references, a parser is expected to resolve them to absolute URIs at model construction time.
-   * Therefore, a relative anchor indicates a producer/parser contract violation and is an {@code ERROR}.
+   * URI-references, a parser is expected to resolve them to absolute URIs at model construction
+   * time. Therefore, a relative anchor indicates a producer/parser contract violation and is an
+   * {@code ERROR}.
    * </p>
    *
-   * @param anchor raw anchor value from {@link WebLink#anchor()}
-   * @param index  index of the link in the original list
-   * @param issues issue sink
+   * @param anchor    raw anchor value from {@link WebLink#anchor()}
+   * @param issueSink a container with the recorded issues, the current index and the recorded
+   *                  blocking weblinks
    */
-  private static void validateAnchorAttribute(String anchor, int index, List<Issue> issues) {
+  private static void validateAnchorAttribute(String anchor, IssueSink issueSink) {
     if (anchor.isBlank()) {
-      issues.add(Issue.error("Anchor attribute value is empty for element at index %d".formatted(index)));
+      issueSink.addError("Anchor attribute value is empty for element at index %d".formatted(
+          issueSink.currentIndex));
       return;
     }
     try {
       var uri = URI.create(anchor);
       if (!uri.isAbsolute()) {
-        issues.add(Issue.error("Invalid anchor value. URI is not absolute for element at index %d".formatted(index)));
+        issueSink.addError(
+            "Invalid anchor value. URI is not absolute for element at index %d".formatted(
+                issueSink.currentIndex));
       }
     } catch (IllegalArgumentException ignored) {
-      issues.add(Issue.error("Invalid anchor attribute value. '%s' is not an URI for element at index %d".formatted(anchor, index)));
+      issueSink.addError(
+          "Invalid anchor attribute value. '%s' is not an URI for element at index %d".formatted(
+              anchor, issueSink.currentIndex));
     }
   }
 
@@ -210,25 +219,24 @@ class Rfc8288ModelValidator implements WebLinkModelValidator {
    * </ul>
    *
    * <p><strong>Important:</strong> The current implementation reports duplicates as {@code ERROR}.
-   * RFC 8288 often specifies "occurrences after the first MUST be ignored by parsers". If you want to
-   * align strictly with that behavior at the model layer, you could downgrade some findings to
-   * {@code WARNING}. This is a maintainer decision and should be reflected in tests.</p>
+   * RFC 8288 often specifies "occurrences after the first MUST be ignored by parsers".
+   * </p>
    *
    * @param targetAttributes list of parameters on the {@link WebLink}
-   * @param index            index of the link in the original list
-   * @param issues           issue sink
+   * @param issueSink        a container with the recorded issues, the current index and the
+   *                         recorded blocking weblinks
    */
   private static void validateTargetAttributeCardinality(List<WebLinkParameter> targetAttributes,
-      int index, List<Issue> issues) {
+      IssueSink issueSink) {
     var attributeCounts = targetAttributes.stream().collect(
         Collectors.groupingBy(WebLinkParameter::name, Collectors.counting()));
     for (var entry : attributeCounts.entrySet()) {
       var attributeName = entry.getKey();
       var attributeCount = entry.getValue();
       if (attributeCount > 1 && !multipleOccurrencesAllowed(attributeName)) {
-        issues.add(Issue.error(
+        issueSink.addError(
             "Multiple attribute definition available. Target attribute '%s' must not appear more than once for element at index %d".formatted(
-                attributeName, index)));
+                attributeName, issueSink.currentIndex));
       }
     }
   }
@@ -237,8 +245,8 @@ class Rfc8288ModelValidator implements WebLinkModelValidator {
    * Returns whether a target attribute is allowed to occur multiple times.
    *
    * <p>
-   * RFC 8288 allows multiple {@code hreflang}. Most other parameters are single-occurrence
-   * and are either ignored after the first occurrence or treated as invalid depending on the layer.
+   * RFC 8288 allows multiple {@code hreflang}. Most other parameters are single-occurrence and are
+   * treated as invalid.
    * </p>
    *
    * @param attributeName parameter name
@@ -256,25 +264,25 @@ class Rfc8288ModelValidator implements WebLinkModelValidator {
    * </p>
    *
    * @param currentLink link to inspect
-   * @param index       list index for localization
-   * @param issues      issue sink
+   * @param issueSink   a container with the recorded issues, the current index and the recorded
+   *                    blocking weblinks
    */
-  private static void validateParameterNames(WebLink currentLink, int index, List<Issue> issues) {
+  private static void validateParameterNames(WebLink currentLink, IssueSink issueSink) {
     currentLink.params()
-        .forEach(parameter -> validateParameterName(parameter.name(), index, issues));
+        .forEach(parameter -> validateParameterName(parameter.name(), issueSink));
   }
 
   /**
    * Validates a single parameter name for token compliance.
    *
-   * @param name  parameter name
-   * @param index list index for localization
-   * @param issues issue sink
+   * @param name      parameter name
+   * @param issueSink a container with the recorded issues, the current index and the recorded
+   *                  blocking weblinks
    */
-  private static void validateParameterName(String name, int index, List<Issue> issues) {
+  private static void validateParameterName(String name, IssueSink issueSink) {
     if (!ALLOWED_TOKEN_CHARS.matcher(name).matches()) {
-      issues.add(Issue.error(
-          "Invalid parameter name '%s' for element at index %d".formatted(name, index)));
+      issueSink.addError("Invalid parameter name '%s' for element at index %d".formatted(name,
+          issueSink.currentIndex));
     }
   }
 
@@ -282,22 +290,23 @@ class Rfc8288ModelValidator implements WebLinkModelValidator {
    * Ensures that the link has at least one relation type token.
    *
    * <p>
-   * RFC 8288 requires the {@code rel} parameter to be present in the serialized representation.
-   * At model level, we approximate this requirement by ensuring {@link WebLink#rel()} is non-empty.
+   * RFC 8288 requires the {@code rel} parameter to be present in the serialized representation. At
+   * model level, we approximate this requirement by ensuring {@link WebLink#rel()} is non-empty.
    * </p>
    *
-   * <p><strong>Maintainer note:</strong> This does not enforce "rel MUST NOT appear more than once"
-   * because {@link WebLink#rel()} is a derived list of tokens. If strict "single rel parameter" needs
-   * enforcement, validate based on {@link WebLink#params()} and count {@code rel} parameters.</p>
+   * <p><strong>Maintainer note:</strong> This does not enforce "rel MUST NOT appear more than
+   * once" because {@link WebLink#rel()} is a derived list of tokens. If strict "single rel
+   * parameter" needs enforcement, validate based on {@link WebLink#params()} and count {@code rel}
+   * parameters.</p>
    *
    * @param currentLink current link
-   * @param index       list index for localization
-   * @param issues      issue sink
+   * @param issueSink   a container with the recorded issues, the current index and the recorded
+   *                    blocking weblinks
    */
-  private static void validateRelationPresence(WebLink currentLink, int index, List<Issue> issues) {
+  private static void validateRelationPresence(WebLink currentLink, IssueSink issueSink) {
     if (currentLink.rel().isEmpty()) {
-      issues.add(
-          Issue.error("Missing relation parameter for element at index %d".formatted(index)));
+      issueSink.addError(
+          "Missing relation parameter for element at index %d".formatted(issueSink.currentIndex));
     }
   }
 
@@ -306,8 +315,8 @@ class Rfc8288ModelValidator implements WebLinkModelValidator {
    *
    * <h3>Normative basis</h3>
    * <p>
-   * RFC 8288 defines the link target as a URI-reference in the serialized syntax. However,
-   * Compass operates on a parsed <em>model</em> ({@link WebLink}) and applies the policy that any
+   * RFC 8288 defines the link target as a URI-reference in the serialized syntax. However, Compass
+   * operates on a parsed <em>model</em> ({@link WebLink}) and applies the policy that any
    * URI-references must already be resolved at the parsing boundary. Therefore, a relative target
    * at model level is treated as an {@code ERROR}.
    * </p>
@@ -324,21 +333,21 @@ class Rfc8288ModelValidator implements WebLinkModelValidator {
    * </p>
    *
    * @param targetUri the target URI of the link (from {@link WebLink#target()})
-   * @param index     index of the link in the original list (used for issue localization)
-   * @param issues    issue sink
+   * @param issueSink a container with the recorded issues, the current index and the recorded
+   *                  blocking weblinks
    */
-  private static void validateTargetUri(URI targetUri, int index, List<Issue> issues) {
+  private static void validateTargetUri(URI targetUri, IssueSink issueSink) {
     // Validates RFC 8288 Section 3.1 Link Target normative requirement for a target value
     if (!targetUri.isAbsolute()) {
-      issues.add(
-          Issue.error("Link target URI is relative for element at index %d".formatted(index)));
+      issueSink.addError(
+          "Link target URI is relative for element at index %d".formatted(issueSink.currentIndex));
       return;
     }
     var scheme = targetUri.getScheme();
     if (!isHttpOrHttps(scheme)) {
-      issues.add(Issue.warning(
-          "Link target URI scheme is non-http for element at index %d: '%s'".formatted(index,
-              scheme)));
+      issueSink.addError(
+          "Link target URI scheme is non-http for element at index %d: '%s'".formatted(
+              issueSink.currentIndex, scheme));
     }
   }
 
@@ -357,10 +366,9 @@ class Rfc8288ModelValidator implements WebLinkModelValidator {
    * {@code null}, empty, or whitespace-only tokens are reported as errors.
    * </p>
    */
-  private static void validateRelationTypeToken(List<String> relationTypes, int index,
-      List<Issue> issues) {
+  private static void validateRelationTypeToken(List<String> relationTypes, IssueSink issueSink) {
     for (var token : relationTypes) {
-      validateRelationTypeToken(token, index, issues);
+      validateRelationTypeToken(token, issueSink);
     }
   }
 
@@ -381,28 +389,28 @@ class Rfc8288ModelValidator implements WebLinkModelValidator {
    * </p>
    *
    * @param typeToken relation type token (must not be {@code null} / blank)
-   * @param index     index of the owning link in the original list
-   * @param issues    issue sink
+   * @param issueSink a container with the recorded issues, the current index and the recorded
+   *                  blocking weblinks
    */
-  private static void validateRelationTypeToken(String typeToken, int index, List<Issue> issues) {
+  private static void validateRelationTypeToken(String typeToken, IssueSink issueSink) {
     if (typeToken == null) {
-      issues.add(
-          Issue.error("Relation type token is null for element at index %d".formatted(index)));
+      issueSink.addError(
+          "Relation type token is null for element at index %d".formatted(issueSink.currentIndex));
       return;
     }
     if (typeToken.isBlank()) {
-      issues.add(Issue.error(
+      issueSink.addError(
           "Relation type token is invalid (reason: empty) for element at index %d".formatted(
-              index)));
+              issueSink.currentIndex));
       return;
     }
     if (isValidUri(typeToken)) {
       return;
     }
     if (!REGULAR_RELATION_TYPE_PATTERN.matcher(typeToken).matches()) {
-      issues.add(Issue.error(
+      issueSink.addError(
           "Relation type token contains invalid characters for element at index %d".formatted(
-              index)));
+              issueSink.currentIndex));
     }
   }
 
@@ -416,7 +424,8 @@ class Rfc8288ModelValidator implements WebLinkModelValidator {
    * </p>
    *
    * @param value string to test
-   * @return {@code true} if {@code value} parses as an absolute {@link URI}, otherwise {@code false}
+   * @return {@code true} if {@code value} parses as an absolute {@link URI}, otherwise
+   * {@code false}
    */
   private static boolean isValidUri(String value) {
     try {
@@ -435,5 +444,32 @@ class Rfc8288ModelValidator implements WebLinkModelValidator {
    */
   private static boolean isHttpOrHttps(String scheme) {
     return scheme.equalsIgnoreCase("http") || scheme.equalsIgnoreCase("https");
+  }
+
+  static final class IssueSink {
+
+    private final List<Issue> issues;
+    private final boolean[] blockingLinkIndices;
+    private int currentIndex;
+
+    IssueSink(List<Issue> issues, boolean[] blockingLinkIndices, int currentIndex) {
+      this.issues = Objects.requireNonNull(issues);
+      this.blockingLinkIndices = Objects.requireNonNull(blockingLinkIndices);
+      this.currentIndex = currentIndex;
+    }
+
+    void addWarning(String message) {
+      addIssue(Issue.warning(message));
+    }
+
+    void addError(String message) {
+      addIssue(Issue.error(message));
+      blockingLinkIndices[currentIndex] = true;
+    }
+
+    private void addIssue(Issue issue) {
+      issues.add(issue);
+    }
+
   }
 }

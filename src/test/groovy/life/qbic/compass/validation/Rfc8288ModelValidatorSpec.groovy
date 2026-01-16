@@ -50,12 +50,12 @@ class Rfc8288ModelValidatorSpec extends Specification {
         WebLinkParameter.withoutValue(name)
     }
 
-    private static boolean hasErrors(IssueReport r) {
-        r != null && r.hasErrors()
+    private static boolean hasErrors(WebLinkModelValidator.ModelValidationResult r) {
+        r != null && r.issueReport().hasErrors()
     }
 
-    private static boolean hasWarnings(IssueReport r) {
-        r != null && r.hasWarnings()
+    private static boolean hasWarnings(WebLinkModelValidator.ModelValidationResult r) {
+        r != null && r.issueReport().hasWarnings()
     }
 
     private static List<Issue> issues(IssueReport r) {
@@ -66,8 +66,8 @@ class Rfc8288ModelValidatorSpec extends Specification {
         issues(r)*.message()
     }
 
-    private static boolean anyMsg(IssueReport r, String fragment) {
-        messages(r).any { it.toLowerCase().contains(fragment.toLowerCase()) }
+    private static boolean anyMsg(WebLinkModelValidator.ModelValidationResult r, String fragment) {
+        messages(r.issueReport()).any { it.toLowerCase().contains(fragment.toLowerCase()) }
     }
 
     // ----------------------------------------------------------------------
@@ -448,7 +448,7 @@ class Rfc8288ModelValidatorSpec extends Specification {
 
         then:
         hasErrors(report)
-        issues(report).size() >= 3
+        issues(report.issueReport()).size() >= 3
         anyMsg(report, "missing")
         anyMsg(report, "bad name")
         anyMsg(report, "relative")

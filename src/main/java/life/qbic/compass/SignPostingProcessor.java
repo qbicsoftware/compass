@@ -64,6 +64,8 @@ public final class SignPostingProcessor {
   public SignPostingResult process(List<WebLink> webLinks) throws NullPointerException {
     Objects.requireNonNull(webLinks);
 
+
+
     var recordedIssues = validators.stream()
         .map(validator -> validator.validate(webLinks))
         .map(SignPostingResult::issueReport)
