@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import life.qbic.compass.spi.WebLinkModelValidator;
 import life.qbic.linksmith.model.WebLink;
 import life.qbic.linksmith.model.WebLinkParameter;
 import life.qbic.linksmith.spi.WebLinkValidator.Issue;

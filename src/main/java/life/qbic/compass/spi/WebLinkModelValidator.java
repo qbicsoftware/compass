@@ -1,4 +1,4 @@
-package life.qbic.compass.validation;
+package life.qbic.compass.spi;
 
 import java.util.Arrays;
 import java.util.List;
@@ -77,7 +77,7 @@ import life.qbic.linksmith.spi.WebLinkValidator.IssueReport;
  * @author Sven Fillinger
  * @since 1.0.0
  */
-interface WebLinkModelValidator {
+public interface WebLinkModelValidator {
 
   /**
    * Validates a list of {@link WebLink} objects against model-level constraints.

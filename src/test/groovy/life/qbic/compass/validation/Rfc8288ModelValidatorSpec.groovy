@@ -1,5 +1,6 @@
 package life.qbic.compass.validation
 
+import life.qbic.compass.spi.WebLinkModelValidator
 import life.qbic.linksmith.model.WebLink
 import life.qbic.linksmith.model.WebLinkParameter
 import life.qbic.linksmith.spi.WebLinkValidator.Issue

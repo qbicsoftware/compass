@@ -4,11 +4,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import life.qbic.compass.model.SignPostingView;
 import life.qbic.compass.model.SignPostingResult;
+import life.qbic.compass.model.SignPostingView;
 import life.qbic.compass.spi.SignPostingValidator;
+import life.qbic.compass.spi.WebLinkModelValidator;
 import life.qbic.compass.validation.Level1SignPostingValidator;
+import life.qbic.compass.validation.WebLinkModelValidators;
 import life.qbic.linksmith.model.WebLink;
+import life.qbic.linksmith.spi.WebLinkValidator.Issue;
 import life.qbic.linksmith.spi.WebLinkValidator.IssueReport;
 
 /**
@@ -54,20 +57,32 @@ import life.qbic.linksmith.spi.WebLinkValidator.IssueReport;
  */
 public final class SignPostingProcessor {
 
-  private final List<SignPostingValidator> validators;
+  public enum LinkSetViewAggregation {
+    NONE,
+    FIRST,
+    MERGE,
+    FAIL_ON_MULTIPLE;
+  }
 
-  private SignPostingProcessor(List<SignPostingValidator> validators) {
+  private final List<SignPostingValidator> validators;
+  private final WebLinkModelValidator modelValidator;
+
+  private SignPostingProcessor(List<SignPostingValidator> validators,
+      WebLinkModelValidator modelValidator) {
     Objects.requireNonNull(validators);
+    Objects.requireNonNull(modelValidator);
     this.validators = List.copyOf(validators);
+    this.modelValidator = modelValidator;
+
   }
 
   /**
-   * Applies all configured {@link SignPostingValidator}s to the provided WebLinks
-   * and aggregates their reported issues into a single {@link SignPostingResult}.
+   * Applies all configured {@link SignPostingValidator}s to the provided WebLinks and aggregates
+   * their reported issues into a single {@link SignPostingResult}.
    *
    * <p>
-   * Each validator is executed independently and receives the <em>same</em>
-   * input list. Validators are not allowed to mutate the input.
+   * Each validator is executed independently and receives the <em>same</em> input list. Validators
+   * are not allowed to mutate the input.
    * </p>
    *
    * <h3>Aggregation semantics</h3>
@@ -106,8 +121,8 @@ public final class SignPostingProcessor {
    * </ul>
    *
    * @param webLinks the WebLinks to be validated
-   * @return a {@link SignPostingResult} containing the aggregated issues and
-   *         a {@link SignPostingView} over the input links
+   * @return a {@link SignPostingResult} containing the aggregated issues and a
+   * {@link SignPostingView} over the input links
    * @throws NullPointerException if {@code webLinks} is {@code null}
    */
   public SignPostingResult process(List<WebLink> webLinks) throws NullPointerException {
@@ -116,33 +131,57 @@ public final class SignPostingProcessor {
         .filter(Objects::nonNull)
         .toList();
 
+    var issues = new ArrayList<Issue>();
+
+    var sanitizedLinks = applyModelValidation(safeLinks, modelValidator, issues);
 
 
     var recordedIssues = validators.stream()
-        .map(validator -> validator.validate(safeLinks))
+        .map(validator -> validator.validate(sanitizedLinks))
         .map(SignPostingResult::issueReport)
         .flatMap(report -> report.issues().stream())
         .toList();
 
-    return new SignPostingResult(new SignPostingView(webLinks), new IssueReport(recordedIssues), null);
+    issues.addAll(recordedIssues);
+
+    return new SignPostingResult(new SignPostingView(sanitizedLinks), new IssueReport(issues),
+        null);
+  }
+
+  private static List<WebLink> applyModelValidation(List<WebLink> webLinks,
+      WebLinkModelValidator modelValidator, List<Issue> issues) {
+    var result = modelValidator.validate(webLinks);
+    var sanitizedLinks = new ArrayList<WebLink>();
+    for (int index = 0; index < webLinks.size(); index++) {
+      if (!result.blockingLinkByIndex()[index]) {
+        sanitizedLinks.add(webLinks.get(index));
+      }
+    }
+    issues.addAll(result.issueReport().issues());
+    return sanitizedLinks;
   }
 
   /**
-   * Builder for constructing a {@link SignPostingProcessor} with a configurable
-   * set of {@link SignPostingValidator}s.
+   * Builder for constructing a {@link SignPostingProcessor} with a configurable set of
+   * {@link SignPostingValidator}s.
    *
    * <p>
    * Validators are executed in the order they are added to the builder.
    * </p>
    *
    * <p>
-   * If no validators are explicitly configured, the processor defaults to
-   * using {@link Level1SignPostingValidator}.
+   * If no validators are explicitly configured, the processor defaults to using
+   * {@link Level1SignPostingValidator}.
    * </p>
    */
   public static final class Builder {
 
     private List<SignPostingValidator> validators = new ArrayList<>();
+
+    /**
+     * Sensible default for the Weblink model validator is the provided RFC 8288 implementation
+     */
+    private WebLinkModelValidator modelValidator = WebLinkModelValidators.rfc8288();
 
     /**
      * Adds one or more validators to this processor.
@@ -155,7 +194,7 @@ public final class SignPostingProcessor {
      * @return this builder for fluent chaining
      * @throws NullPointerException if {@code validators} is {@code null}
      */
-    Builder withValidators(SignPostingValidator... validators) {
+    public Builder withValidators(SignPostingValidator... validators) {
       return this.withValidators(Arrays.stream(validators).toList());
     }
 
@@ -170,8 +209,22 @@ public final class SignPostingProcessor {
      * @return this builder for fluent chaining
      * @throws NullPointerException if {@code validators} is {@code null}
      */
-    Builder withValidators(List<SignPostingValidator> validators) {
+    public Builder withValidators(List<SignPostingValidator> validators) {
       this.validators.addAll(validators);
+      return this;
+    }
+
+    /**
+     * Adds a validator for the semantic weblink model.
+     * <p>
+     * If no model validator is provided, it defaults the library's RFC 8288 validation
+     * implementation.
+     *
+     * @param modelValidator a weblink model validator
+     * @return this builder for fluent chaining
+     */
+    public Builder withModelValidator(WebLinkModelValidator modelValidator) {
+      this.modelValidator = modelValidator;
       return this;
     }
 
@@ -185,12 +238,17 @@ public final class SignPostingProcessor {
      *
      * @return a configured {@link SignPostingProcessor}
      */
-    SignPostingProcessor build() {
+    public SignPostingProcessor build() {
       if (validators.isEmpty()) {
-        return new SignPostingProcessor(List.of(Level1SignPostingValidator.create()));
+        return new SignPostingProcessor(List.of(Level1SignPostingValidator.create()),
+            modelValidator);
       }
-      return new SignPostingProcessor(validators);
+      return new SignPostingProcessor(validators, modelValidator);
     }
   }
+
+
+
+
 
 }
