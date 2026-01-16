@@ -5,7 +5,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import life.qbic.linksmith.model.WebLink;
+import life.qbic.linksmith.model.WebLinkParameter;
 import life.qbic.linksmith.spi.WebLinkValidator.Issue;
 import life.qbic.linksmith.spi.WebLinkValidator.IssueReport;
 
@@ -64,15 +66,53 @@ class Rfc8288ModelValidator implements WebLinkModelValidator {
     validateRelationPresence(currentLink, index, issues);
     validateRelationTypeToken(currentLink.rel(), index, issues);
     validateParameterNames(currentLink, index, issues);
+    validateTargetAttributeCardinality(currentLink.params(), index, issues);
+    currentLink.anchor().ifPresent(anchor -> validateAnchorAttribute(anchor, index, issues));
+  }
+
+  private static void validateAnchorAttribute(String anchor, int index, List<Issue> issues) {
+    if (anchor.isBlank()) {
+      issues.add(Issue.error("Anchor attribute value is empty for element at index %d".formatted(index)));
+      return;
+    }
+    try {
+      var uri = URI.create(anchor);
+      if (!uri.isAbsolute()) {
+        issues.add(Issue.error("Invalid anchor value. URI is not absolute for element at index %d".formatted(index)));
+      }
+    } catch (IllegalArgumentException ignored) {
+      issues.add(Issue.error("Invalid anchor attribute value. '%s' is not an URI for element at index %d".formatted(anchor, index)));
+    }
+  }
+
+  private static void validateTargetAttributeCardinality(List<WebLinkParameter> targetAttributes,
+      int index, List<Issue> issues) {
+    var attributeCounts = targetAttributes.stream().collect(
+        Collectors.groupingBy(WebLinkParameter::name, Collectors.counting()));
+    for (var entry : attributeCounts.entrySet()) {
+      var attributeName = entry.getKey();
+      var attributeCount = entry.getValue();
+      if (attributeCount > 1 && !multipleOccurrencesAllowed(attributeName)) {
+        issues.add(Issue.error(
+            "Multiple attribute definition available. Target attribute '%s' must appear more than once for element at index %d".formatted(
+                attributeName, index)));
+      }
+    }
+  }
+
+  private static boolean multipleOccurrencesAllowed(String attributeName) {
+    return attributeName.equals("hreflang");
   }
 
   private static void validateParameterNames(WebLink currentLink, int index, List<Issue> issues) {
-    currentLink.params().forEach(parameter -> validateParameterName(parameter.name(), index, issues));
+    currentLink.params()
+        .forEach(parameter -> validateParameterName(parameter.name(), index, issues));
   }
 
   private static void validateParameterName(String name, int index, List<Issue> issues) {
     if (!ALLOWED_TOKEN_CHARS.matcher(name).matches()) {
-      issues.add(Issue.error("Invalid parameter name '%s' for element at index %d".formatted(name, index)));
+      issues.add(Issue.error(
+          "Invalid parameter name '%s' for element at index %d".formatted(name, index)));
     }
   }
 
