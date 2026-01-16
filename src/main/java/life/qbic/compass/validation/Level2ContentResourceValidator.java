@@ -66,7 +66,7 @@ import life.qbic.linksmith.spi.WebLinkValidator.IssueReport;
  * @since 1.0.0
  * @author Sven Fillinger
  */
-public class Level2ContentResourceValidator implements SignPostingValidator {
+public final class Level2ContentResourceValidator implements SignPostingValidator {
 
   /** Relation type {@code cite-as} used by FAIR Signposting. */
   public static final String CITE_AS = "cite-as";

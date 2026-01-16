@@ -75,7 +75,7 @@ import life.qbic.linksmith.spi.WebLinkValidator.IssueReport;
  * @author Sven Fillinger
  * @since 1.0.0
  */
-public class Level2MetadataResourceValidator implements SignPostingValidator {
+public final class Level2MetadataResourceValidator implements SignPostingValidator {
 
   /**
    * The relation type required by the Level 2 metadata resource recipe.

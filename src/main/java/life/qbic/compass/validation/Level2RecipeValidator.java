@@ -14,8 +14,8 @@ import life.qbic.compass.model.LandingPageView;
 import life.qbic.compass.model.Level2LinksetView;
 import life.qbic.compass.model.MetadataResourceView;
 import life.qbic.compass.model.MissingOriginLink;
-import life.qbic.compass.model.SignPostingView;
 import life.qbic.compass.model.SignPostingResult;
+import life.qbic.compass.model.SignPostingView;
 import life.qbic.compass.spi.SignPostingValidator;
 import life.qbic.linksmith.model.WebLink;
 import life.qbic.linksmith.spi.WebLinkValidator.Issue;
@@ -108,6 +108,27 @@ import life.qbic.linksmith.spi.WebLinkValidator.IssueReport;
  *       <li>pre-group and pre-classify anchor contexts before calling this validator, or</li>
  *       <li>use specialized validators directly where the recipe type is already known.</li>
  *     </ul>
+ *   </li>
+ * </ul>
+ *
+ * <h3>What can change in the future</h3>
+ * <p>
+ * The following aspects are <strong>not</strong> considered part of the stable API contract and may
+ * change between releases without notice:
+ * </p>
+ * <ul>
+ *   <li>
+ *     The heuristic used to determine which recipe validator to apply for a given origin context.
+ *   </li>
+ *   <li>
+ *     The exact wording of {@link Issue#message()} values.
+ *     Clients must rely on issue {@code type} and documented validation rules, not message text.
+ *   </li>
+ *   <li>
+ *     The ordering of reported issues.
+ *   </li>
+ *   <li>
+ *      The severity classification (ERROR vs WARNING) for non-normative profile recommendations.
  *   </li>
  * </ul>
  *
@@ -262,7 +283,8 @@ public class Level2RecipeValidator implements SignPostingValidator {
    * recorded for the given anchor.
    * </p>
    *
-   * @param anchor the anchor value (RFC 8288) that defines the link origin (FAIR Signposting) or link context (RFC 9264)
+   * @param anchor the anchor value (RFC 8288) that defines the link origin (FAIR Signposting) or
+   *               link context (RFC 9264)
    * @param links  the links belonging to the anchor context
    * @param issues the shared issue sink collecting all validation findings
    */
