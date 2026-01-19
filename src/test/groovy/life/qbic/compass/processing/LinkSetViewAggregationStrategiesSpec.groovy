@@ -38,9 +38,9 @@ class LinkSetViewAggregationStrategiesSpec extends Specification {
         def missingLinks = [] as List<MissingOriginLink>
 
         new Level2LinksetView(
-                (1..landing).collect { mkLanding(it) },
-                (1..content).collect { mkContent(it) },
-                (1..metadata).collect { mkMeta(it) },
+                (0..<landing).collect { mkLanding(it) },
+                (0..<content).collect { mkContent(it) },
+                (0..<metadata).collect { mkMeta(it) },
                 missingLinks
         )
     }

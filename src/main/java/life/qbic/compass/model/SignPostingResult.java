@@ -58,4 +58,8 @@ public record SignPostingResult(
     IssueReport issueReport,
     Level2LinksetView level2LinksetView) {
 
+  public boolean hasLinkSetView() {
+    return level2LinksetView != null;
+  }
+
 }
