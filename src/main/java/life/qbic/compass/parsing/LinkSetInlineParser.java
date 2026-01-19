@@ -21,16 +21,19 @@ public final class LinkSetInlineParser implements LinkSetParser {
 
   @Override
   public List<WebLink> parse(String rawLinkSet) throws ParsingException {
-    return List.of();
+    // TODO implement
+    throw new RuntimeException("Not yet implemented");
   }
 
   @Override
   public List<WebLink> parse(InputStream inputStream) throws ParsingException {
-    return List.of();
+    // TODO implement
+    throw new RuntimeException("Not yet implemented");
   }
 
   @Override
   public List<WebLink> parse(Reader reader) throws ParsingException {
-    return List.of();
+    // TODO implement
+    throw new RuntimeException("Not yet implemented");
   }
 }
