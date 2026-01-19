@@ -6,11 +6,6 @@ import java.util.List;
 import life.qbic.compass.spi.LinkSetParser;
 import life.qbic.linksmith.model.WebLink;
 
-/**
- * <class short description>
- *
- * @since <version tag>
- */
 public final class LinkSetInlineParser implements LinkSetParser {
 
   private LinkSetInlineParser() {}
@@ -21,16 +16,19 @@ public final class LinkSetInlineParser implements LinkSetParser {
 
   @Override
   public List<WebLink> parse(String rawLinkSet) throws ParsingException {
-    return List.of();
+    // TODO implement
+    throw new RuntimeException("Not yet implemented");
   }
 
   @Override
   public List<WebLink> parse(InputStream inputStream) throws ParsingException {
-    return List.of();
+    // TODO implement
+    throw new RuntimeException("Not yet implemented");
   }
 
   @Override
   public List<WebLink> parse(Reader reader) throws ParsingException {
-    return List.of();
+    // TODO implement
+    throw new RuntimeException("Not yet implemented");
   }
 }

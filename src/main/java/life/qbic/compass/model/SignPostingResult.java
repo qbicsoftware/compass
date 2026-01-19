@@ -51,11 +51,26 @@ import life.qbic.linksmith.spi.WebLinkValidator.IssueReport;
  *   <li>compose validation results in higher-level workflows.</li>
  * </ul>
  *
+ * @param signPostingView   a read-only view on the validated weblinks
+ * @param issueReport       an aggregated report of all recoded issues during validation
+ * @param level2LinksetView a Signposting Level 2 compliant view semantics in case the validator
+ *                          also performed FAIR Signposting recipe detection (e.g., landing page,
+ *                          content or metadata resource)
  * @author Sven Fillinger
+ * @since 1.0.0
  */
 public record SignPostingResult(
     SignPostingView signPostingView,
     IssueReport issueReport,
     Level2LinksetView level2LinksetView) {
 
+  /**
+   * Convenience method for aggregators or filters to check, if the current SignPosting result
+   * contains a linkset view or not.
+   *
+   * @return true, if the current Signposting result contains a linkset view, else false
+   */
+  public boolean hasLinkSetView() {
+    return level2LinksetView != null;
+  }
 }

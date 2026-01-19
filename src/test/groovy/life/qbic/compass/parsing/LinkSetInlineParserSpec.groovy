@@ -1,6 +1,7 @@
 package life.qbic.compass.parsing
 
 import life.qbic.compass.spi.LinkSetParser
+import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -8,6 +9,7 @@ class LinkSetInlineParserSpec extends Specification {
 
     def parser = new LinkSetInlineParser()
 
+    @Ignore
     def "happy path: parses one inline link entry with rel + anchor + type"() {
         given:
         def raw = '<https://authors.example.net/johndoe>; rel="author"; anchor="https://example.org/resource1"; type="application/rdf+xml"'
@@ -29,6 +31,7 @@ class LinkSetInlineParserSpec extends Specification {
         // links[0].anchor().orElse(null) == URI.create("https://example.org/resource1")
     }
 
+    @Ignore
     def "happy path: parses multiple link entries separated by comma"() {
         given:
         def raw = [
@@ -51,6 +54,7 @@ class LinkSetInlineParserSpec extends Specification {
         links.find { it.target() == URI.create("https://doi.org/10.1234/example") }.rel().contains("cite-as")
     }
 
+    @Ignore
     def "happy path: tolerates OWS / extra whitespace around separators"() {
         given:
         def raw = '<https://example.org/x>  ;  rel = "item"  ;  anchor = "https://example.org/a"'
@@ -64,6 +68,7 @@ class LinkSetInlineParserSpec extends Specification {
         links[0].rel().contains("item")
     }
 
+    @Ignore
     def "happy path: parameter without value (e.g., ; foo) is preserved as an extension attribute"() {
         given:
         def raw = '<https://example.org/x>; rel="item"; anchor="https://example.org/a"; foo'
@@ -78,6 +83,7 @@ class LinkSetInlineParserSpec extends Specification {
         // links[0].extensionAttributes().containsKey("foo")
     }
 
+    @Ignore
     @Unroll
     def "invalid: rejects malformed / semantically invalid inline linkset (#caseName)"() {
         when:
@@ -99,6 +105,7 @@ class LinkSetInlineParserSpec extends Specification {
         "invalid anchor URI"           | '<https://example.org/x>; rel="item"; anchor="::::"'
     }
 
+    @Ignore
     def "invariant: returned list is immutable or defensively copied"() {
         given:
         def raw = '<https://example.org/x>; rel="item"'

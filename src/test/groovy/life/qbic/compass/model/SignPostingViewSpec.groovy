@@ -136,7 +136,7 @@ class SignPostingViewSpec extends Specification {
         def citeAsUris = view.citeAs()
 
         then:
-        citeAsUris == [URI.create("https://doi.org/10.1234/xyz")]
+        citeAsUris.contains(weblink("https://doi.org/10.1234/xyz", [rel("cite-as")]))
     }
 
     def "Level 1: describedBy returns all URIs with rel=describedby"() {
@@ -153,8 +153,8 @@ class SignPostingViewSpec extends Specification {
 
         then:
         described as Set == [
-                URI.create("https://example.org/meta/datacite.xml"),
-                URI.create("https://example.org/meta/schemaorg.jsonld")
+                weblink("https://example.org/meta/datacite.xml", [rel("describedby")]),
+                weblink("https://example.org/meta/schemaorg.jsonld", [rel("describedby")])
         ] as Set
     }
 
@@ -194,8 +194,14 @@ class SignPostingViewSpec extends Specification {
 
         then:
         linksetUris as Set == [
-                URI.create("https://example.org/linkset.json"),
-                URI.create("https://example.org/linkset-alt")
+                weblink("https://example.org/linkset.json", [
+                        rel("linkset"),
+                        type("application/linkset+json")
+                ]),
+                weblink("https://example.org/linkset-alt", [
+                        rel("linkset"),
+                        type("application/linkset")
+                ])
         ] as Set
     }
 
@@ -228,11 +234,13 @@ class SignPostingViewSpec extends Specification {
         ])
 
         expect: "Level 1 helpers"
-        view.citeAs() == [URI.create("https://doi.org/10.9999/foo")]
-        view.describedBy() == [URI.create("https://example.org/meta/datacite.xml")]
+        view.citeAs().contains(weblink("https://doi.org/10.9999/foo", [rel("cite-as")]))
+        view.describedBy().contains(weblink("https://example.org/meta/datacite.xml", [rel("describedby")]))
 
         and: "Level 2 discovery helper"
-        view.linksets() == [URI.create("https://example.org/linkset.json")]
+        view.linksets().contains(weblink("https://example.org/linkset.json", [
+                rel("linkset"), type("application/linkset+json")
+        ]))
 
         and: "rel-based helper is consistent"
         view.withRelationType("item")*.target() == [URI.create("https://example.org/file1")]

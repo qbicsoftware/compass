@@ -5,6 +5,7 @@ import life.qbic.compass.model.SignPostingResult
 import life.qbic.compass.spi.SignPostingValidator
 import life.qbic.compass.validation.Level1SignPostingValidator
 import life.qbic.linksmith.model.WebLink
+import life.qbic.linksmith.model.WebLinkParameter
 import life.qbic.linksmith.spi.WebLinkValidator
 import spock.lang.Specification
 
@@ -25,16 +26,16 @@ class SignPostingProcessorSpec extends Specification {
     def "processor calls all configured validators exactly once with the provided WebLinks"() {
         given:
         def webLinks = [
-                weblink("https://example.org/object"),
-                weblink("https://example.org/meta")
+                weblink("https://example.org/object", "cite-as"),
+                weblink("https://example.org/meta", "describedby")
         ]
 
         def v1 = Mock(SignPostingValidator)
         def v2 = Mock(SignPostingValidator)
 
         and: "each validator returns some result"
-        def r1 = new SignPostingResult(new SignPostingView(webLinks), new WebLinkValidator.IssueReport([WebLinkValidator.Issue.warning("v1")]))
-        def r2 = new SignPostingResult(new SignPostingView(webLinks), new WebLinkValidator.IssueReport([WebLinkValidator.Issue.warning("v2")]))
+        def r1 = new SignPostingResult(new SignPostingView(webLinks), new WebLinkValidator.IssueReport([WebLinkValidator.Issue.warning("v1")]), null)
+        def r2 = new SignPostingResult(new SignPostingView(webLinks), new WebLinkValidator.IssueReport([WebLinkValidator.Issue.warning("v2")]), null)
 
         and:
         def processor = new SignPostingProcessor.Builder()
@@ -110,10 +111,10 @@ class SignPostingProcessorSpec extends Specification {
     // Side effects / invariants
     // ------------------------------------------------------------------------
 
-    def "processor does not mutate the provided WebLinks list"() {
+    def "processor does not mutate the provided WebLinks list (except null elements) "() {
         given:
         def webLinks = new ArrayList<WebLink>([
-                weblink("https://example.org/object")
+                weblink("https://example.org/object", "cite-as")
         ])
         def snapshot = new ArrayList<>(webLinks)
 
@@ -126,7 +127,8 @@ class SignPostingProcessorSpec extends Specification {
         and:
         v.validate(_ as List<WebLink>) >> new SignPostingResult(
                 new SignPostingView(webLinks),
-                new WebLinkValidator.IssueReport([])
+                new WebLinkValidator.IssueReport([]),
+                null
         )
 
         when:
@@ -138,15 +140,13 @@ class SignPostingProcessorSpec extends Specification {
 
     def "SignPostingView performs defensive copy: modifying input list after processing does not affect the view"() {
         given:
-        def inputLinks = new ArrayList<WebLink>([
-                weblink("https://example.org/object")
-        ])
+        def inputLinks = new ArrayList<WebLink>()
+        inputLinks.add(weblink("https://example.org/object", "cite-as"))
 
         and: "a validator that returns a real result"
         def validator = Stub(SignPostingValidator) {
-            validate(_ as List<WebLink>) >> { List<WebLink> passed ->
-                // IMPORTANT: return a real SignPostingResult, not a mock
-                new SignPostingResult(new SignPostingView(passed), new WebLinkValidator.IssueReport([]))
+            validate(_ as List<WebLink>) >> { passed ->
+                new SignPostingResult(new SignPostingView(passed.get(0)), new WebLinkValidator.IssueReport([]), null)
             }
         }
 
@@ -157,7 +157,7 @@ class SignPostingProcessorSpec extends Specification {
 
         when:
         def result = processor.process(inputLinks)
-        inputLinks.add(weblink("https://example.org/other"))  // mutate after processing
+        inputLinks.add(weblink("https://example.org/other", "cite-as"))  // mutate after processing
 
         then:
         result.signPostingView().webLinks().size() == 1
@@ -212,10 +212,10 @@ class SignPostingProcessorSpec extends Specification {
     // Helpers
     // ------------------------------------------------------------------------
 
-    private static WebLink weblink(String target) {
+    private static WebLink weblink(String target, String relation) {
         // Adjust if your WebLink constructor differs.
         // Many implementations model target/reference; here we assume a single URI target is enough for tests.
-        new WebLink(URI.create(target), List.of())
+        new WebLink(URI.create(target), List.of(new WebLinkParameter("rel", relation)))
     }
 
     private static List<SignPostingValidator> readValidators(SignPostingProcessor processor) {
