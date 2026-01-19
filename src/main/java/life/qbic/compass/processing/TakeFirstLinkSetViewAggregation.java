@@ -8,9 +8,28 @@ import life.qbic.compass.model.SignPostingView;
 import life.qbic.linksmith.spi.WebLinkValidator.IssueReport;
 
 /**
- * <class short description>
+ * Aggregation strategy that selects the <em>first</em> available
+ * {@link life.qbic.compass.model.Level2LinksetView} and ignores all subsequent ones.
  *
- * @since <version tag>
+ * <p>
+ * The first {@link SignPostingResult} in iteration order that contains a
+ * non-null {@code level2LinksetView} wins.
+ * </p>
+ *
+ * <p>
+ * This is the default strategy used by {@link life.qbic.compass.SignPostingProcessor}
+ * because it provides predictable behavior without failing in multi-validator setups.
+ * </p>
+ *
+ * <p>
+ * <strong>Important:</strong> Later validators producing conflicting or more complete
+ * linkset views are silently ignored.
+ * </p>
+ *
+ * <p>
+ * This strategy only throws {@link LinkSetViewAggregationStrategy.AggregationStrategyException} in case the provided
+ * result list is empty.
+ * </p>
  */
 public class TakeFirstLinkSetViewAggregation implements LinkSetViewAggregationStrategy {
 

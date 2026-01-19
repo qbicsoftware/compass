@@ -14,9 +14,33 @@ import life.qbic.compass.model.SignPostingView;
 import life.qbic.linksmith.spi.WebLinkValidator.IssueReport;
 
 /**
- * <class short description>
+ * Aggregation strategy that merges multiple
+ * {@link life.qbic.compass.model.Level2LinksetView} instances into a single view.
  *
- * @since <version tag>
+ * <p>
+ * All landing pages, content resources, metadata resources, and missing-origin
+ * links from the individual views are combined into a new aggregated view.
+ * </p>
+ *
+ * <p>
+ * This strategy assumes that individual {@code Level2LinksetView}s are
+ * <em>compatible</em> and does not attempt to detect semantic conflicts
+ * (e.g. duplicate origins with differing semantics).
+ * </p>
+ *
+ * <p>
+ * Use this strategy when:
+ * </p>
+ * <ul>
+ *   <li>multiple validators contribute complementary Level&nbsp;2 information, and</li>
+ *   <li>the client is prepared to handle potential overlaps or redundancies.</li>
+ * </ul>
+ *
+ * <p>
+ * This strategy may throw {@link LinkSetViewAggregationStrategy.AggregationStrategyException}
+ * if merging is structurally impossible (e.g. unexpected null invariants) or if the provided
+ * result list is empty and no aggregation can be performed.
+ * </p>
  */
 public class MergeLinkSetViewAggregation implements LinkSetViewAggregationStrategy {
 
@@ -26,7 +50,7 @@ public class MergeLinkSetViewAggregation implements LinkSetViewAggregationStrate
     Objects.requireNonNull(results);
 
     if (results.isEmpty()) {
-      throw new AggregationStrategyException("Signposting result list must not be empty");
+      throw new AggregationStrategyException("Aggregation strategy was invoked without any results to aggregate");
     }
 
     var aggregatedIssues = results.stream()

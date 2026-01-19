@@ -3,15 +3,33 @@ package life.qbic.compass.processing;
 import java.util.List;
 import java.util.Objects;
 import life.qbic.compass.LinkSetViewAggregationStrategy;
-import life.qbic.compass.model.Level2LinksetView;
 import life.qbic.compass.model.SignPostingResult;
 import life.qbic.compass.model.SignPostingView;
 import life.qbic.linksmith.spi.WebLinkValidator.IssueReport;
 
 /**
- * <class short description>
+ * Strict aggregation strategy that fails if more than one
+ * {@link life.qbic.compass.model.Level2LinksetView} is present.
  *
- * @since <version tag>
+ * <p>
+ * If zero or one linkset view is encountered, aggregation succeeds.
+ * If two or more validators produce a linkset view, aggregation fails
+ * with an {@link LinkSetViewAggregationStrategy.AggregationStrategyException}.
+ * </p>
+ *
+ * <p>
+ * This strategy enforces a strong invariant:
+ * <em>at most one</em> Level&nbsp;2 linkset view may exist.
+ * </p>
+ *
+ * <p>
+ * It is recommended for:
+ * </p>
+ * <ul>
+ *   <li>strict validation pipelines,</li>
+ *   <li>testing and debugging validator composition, or</li>
+ *   <li>environments where multiple Level&nbsp;2 producers indicate a configuration error.</li>
+ * </ul>
  */
 public class FailOnMultipleLinkSetViewAggregation implements LinkSetViewAggregationStrategy {
 

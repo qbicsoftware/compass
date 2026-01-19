@@ -2,7 +2,6 @@ package life.qbic.compass.spi;
 
 import java.io.InputStream;
 import java.io.Reader;
-import java.nio.charset.Charset;
 import java.util.List;
 import life.qbic.linksmith.model.WebLink;
 

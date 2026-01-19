@@ -8,9 +8,26 @@ import life.qbic.compass.model.SignPostingView;
 import life.qbic.linksmith.spi.WebLinkValidator.IssueReport;
 
 /**
- * <class short description>
+ * Aggregation strategy that deliberately ignores all
+ * {@link life.qbic.compass.model.Level2LinksetView} instances.
  *
- * @since <version tag>
+ * <p>
+ * The resulting {@link life.qbic.compass.model.SignPostingResult} will always have
+ * {@code level2LinksetView == null}, regardless of how many validators produced a linkset view.
+ * </p>
+ *
+ * <p>
+ * This strategy is useful when:
+ * </p>
+ * <ul>
+ *   <li>clients are only interested in issues and {@link life.qbic.compass.model.SignPostingView}, or</li>
+ *   <li>Level&nbsp;2 structure is handled externally or in a separate workflow.</li>
+ * </ul>
+ *
+ * <p>
+ * This strategy only throws {@link LinkSetViewAggregationStrategy.AggregationStrategyException} in case the provided
+ * result list is empty.
+ * </p>
  */
 public class NoLinkSetViewAggregation implements LinkSetViewAggregationStrategy {
 
