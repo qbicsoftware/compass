@@ -6,11 +6,6 @@ import java.util.List;
 import life.qbic.compass.spi.LinkSetParser;
 import life.qbic.linksmith.model.WebLink;
 
-/**
- * <class short description>
- *
- * @since <version tag>
- */
 public final class LinkSetInlineParser implements LinkSetParser {
 
   private LinkSetInlineParser() {}

@@ -168,7 +168,7 @@ public final class SignPostingProcessor {
    * are not allowed to mutate the input.
    * </p>
    *
-   * <h3>Aggregation semantics</h3>
+   * <p><strong>Aggregation semantics</strong></p>
    * <ul>
    *   <li>All validators are executed in the order they were configured.</li>
    *   <li>All {@link life.qbic.linksmith.spi.WebLinkValidator.Issue}s from all
@@ -177,7 +177,7 @@ public final class SignPostingProcessor {
    *       subsequent validators are still executed.</li>
    * </ul>
    *
-   * <h3>View semantics</h3>
+   * <p><strong>View semantics</strong></p>
    * <p>
    * The processor is <strong>non-destructive with respect to non-null links</strong>.
    * It does not reorder or modify WebLinks. However, {@code null} elements are
@@ -190,6 +190,7 @@ public final class SignPostingProcessor {
    * As a result, the returned {@link SignPostingView} contains all non-null WebLinks
    * from the input list, in their original order.
    * </p>
+   * <p>
    * This processor intentionally does <em>not</em> merge or expose any
    * {@link life.qbic.compass.model.Level2LinksetView} instances returned by
    * individual validators. If Level&nbsp;2 structural views are required,
@@ -197,7 +198,7 @@ public final class SignPostingProcessor {
    * (e.g. {@code Level2RecipeValidator}).
    * </p>
    *
-   * <h3>Error handling</h3>
+   * <p><strong>Error handling</strong></p>
    * <ul>
    *   <li>{@code webLinks} must not be {@code null}.</li>
    *   <li>{@code webLinks} may contain {@code null} elements. Null elements are skipped.</li>
