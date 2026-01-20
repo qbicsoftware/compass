@@ -39,6 +39,12 @@
     </developer>
   </developers>
 
+  <scm>
+    <connection>scm:git:git://github.com/qbicsoftware/compass.git</connection>
+    <developerConnection>scm:git:ssh://github.com:qbicsoftware/compass.git</developerConnection>
+    <url>http://github.com/qbicsoftware/compass/tree/main</url>
+  </scm>
+
   <dependencies>
     <dependency>
       <groupId>life.qbic</groupId>
