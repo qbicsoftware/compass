@@ -27,7 +27,7 @@ This repository is in an **early and experimental stage**.
 - Documentation may be incomplete or outdated
 - Backward compatibility is **not guaranteed**
 
-Use at your own risk.
+Use at your own risk, but provide feedback and suggestions in an issue or contribution in form of a pull-request.
 
 ---
 
@@ -120,9 +120,9 @@ List<WebLink> authors = view.author();
 **Compass** is a lightweight Java library for **validating and interpreting FAIR Signposting**.
 It builds on [Linksmith](https://github.com/qbicsoftware/linksmith) and adds:
 
-- defensive RFC 8288 *model-level* validation,
-- FAIR Signposting Level 1 and Level 2 recipe validation,
-- semantic views and Link Set (RFC 9264) processing.
+- defensive [RFC 8288](https://datatracker.ietf.org/doc/html/rfc8288) *model-level* validation,
+- [FAIR Signposting](https://signposting.org/FAIR/) Level 1 and Level 2 recipe validation,
+- semantic views and Link Set ([RFC 9264](https://www.rfc-editor.org/rfc/rfc9264.html)) processing.
 
 Compass operates entirely **in memory**, performs **no network requests**,  
 and works with `WebLink` objects regardless of how they were created.
@@ -146,14 +146,14 @@ Compass is designed to complement — not replace — Linksmith:
 
 - **Linksmith**
   - Parses Web Linking syntax
-  - Validates RFC 8288 during parsing
+  - Validates [RFC 8288](https://datatracker.ietf.org/doc/html/rfc8288) during parsing
   - Produces `WebLink` model objects
 
 - **Compass**
   - Does not assume how `WebLink`s were produced
-  - Validates RFC 8288 *model-level constraints* defensively
-  - Applies FAIR Signposting semantics and recipes
-  - Interprets Level 2 Link Sets (RFC 9264)
+  - Validates [RFC 8288](https://datatracker.ietf.org/doc/html/rfc8288) *model-level constraints* defensively
+  - Applies [FAIR Signposting](https://signposting.org/FAIR/) semantics and recipes
+  - Interprets Level 2 Link Sets ([RFC 9264](https://www.rfc-editor.org/rfc/rfc9264.html))
 
 Together, they form a clean separation of concerns:
 
