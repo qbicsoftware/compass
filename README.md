@@ -31,7 +31,7 @@ Use at your own risk, but provide feedback and suggestions in an issue or contri
 
 ---
 
-# Quick start
+## Quick start
 
 ## Resolve dependency
 
@@ -44,7 +44,7 @@ Use at your own risk, but provide feedback and suggestions in an issue or contri
 
 Check the latest component version on [Maven Central](https://central.sonatype.com/artifact/life.qbic/compass/).
 
-## Example: Level 1 FAIR Signposting Profile validation
+### Example: Level 1 FAIR Signposting Profile validation
 
 ```bash
 curl -I https://zenodo.org/records/17179862
@@ -114,6 +114,19 @@ List<WebLink> metadata = view.describedBy();
 // Access to author typed WebLinks
 List<WebLink> authors = view.author();
 ```
+
+### More examples
+
+Additional, self-contained examples are available in the `examples/` directory, including:
+
+- FAIR Signposting **Level 1** validation scenarios
+- **Level 2 discovery** using Link Sets (RFC 9264)
+- Handling **multiple Link Sets** with different aggregation strategies
+- Validation of **incomplete or non-compliant** Signposting data
+
+Each example is designed to be minimal, runnable, and focused on a single concept.
+
+---
 
 ## What is Compass?
 
