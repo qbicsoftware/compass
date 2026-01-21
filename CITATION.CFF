@@ -6,7 +6,7 @@ message: >-
   For long-term or archival references, consider citing a later stable release when available.
 
 title: "Compass — Java library for FAIR Signposting validation of RFC 8288 Web Links (alpha)"
-version: "1.0.0-alpha.1"
+version: "1.0.0-alpha.2"
 date-released: "2025-01-20"
 
 authors:
