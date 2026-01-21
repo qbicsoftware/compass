@@ -117,14 +117,20 @@ List<WebLink> authors = view.author();
 
 ### More examples
 
-Additional, self-contained examples are available in the `examples/` directory, including:
+Compass comes with example-driven documentation that explains common
+FAIR Signposting validation scenarios step by step:
 
-- FAIR Signposting **Level 1** validation scenarios
-- **Level 2 discovery** using Link Sets (RFC 9264)
+- FAIR Signposting **Level 1** validation:  
+  [`doc/level1-basic-validation.md`](doc/level1-basic-validation.md)
+
+- FAIR Signposting **Level 2 discovery** using Link Sets (RFC 9264)
+
 - Handling **multiple Link Sets** with different aggregation strategies
+
 - Validation of **incomplete or non-compliant** Signposting data
 
-Each example is designed to be minimal, runnable, and focused on a single concept.
+Each document is self-contained and focuses on a single concept,
+using real-world HTTP Link header examples and minimal Java snippets.
 
 ---
 
