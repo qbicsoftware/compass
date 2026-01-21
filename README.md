@@ -1,9 +1,7 @@
 <div align="center">
 
 # Compass
-
 Java library for FAIR Signposting validation of RFC 8288 Web Links. 
-
 
 [![Build Maven Package](https://github.com/qbicsoftware/compass/actions/workflows/build_package.yml/badge.svg)](https://github.com/qbicsoftware/compass/actions/workflows/build_package.yml)
 [![Run Maven Tests](https://github.com/qbicsoftware/compass/actions/workflows/run_tests.yml/badge.svg)](https://github.com/qbicsoftware/compass/actions/workflows/run_tests.yml)
@@ -33,7 +31,7 @@ Use at your own risk, but provide feedback and suggestions in an issue or contri
 
 ## Quick start
 
-## Resolve dependency
+### Resolve dependency
 
 ```xml
 <!-- You might want to check for the latest version -->
@@ -120,8 +118,7 @@ List<WebLink> authors = view.author();
 Compass comes with example-driven documentation that explains common
 FAIR Signposting validation scenarios step by step:
 
-- FAIR Signposting **Level 1** validation:  
-  [`doc/level1-basic-validation.md`](doc/level1-basic-validation.md)
+- FAIR Signposting **Level 1** validation: [`doc/level1-basic-validation.md`](doc/level1-basic-validation.md)
 
 - FAIR Signposting **Level 2 discovery** using Link Sets (RFC 9264)
 
