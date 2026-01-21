@@ -6,107 +6,126 @@ import life.qbic.compass.spi.SignPostingValidator;
 import life.qbic.linksmith.model.WebLink;
 
 /**
- * A semantic, read-only view over a collection of {@link WebLink}s that provides convenient
- * accessors for Signposting-related link relations.
+ * A semantic, read-only view over a collection of {@link WebLink}s.
  *
  * <p>
- * {@code SignPostingView} does not perform validation itself. Instead, it assumes that the supplied
- * WebLinks have already been processed by one or more {@link SignPostingValidator}s and offers a
- * profile-oriented API to inspect the resulting links.
+ * {@code SignPostingView} is a convenience facade for working with typed Web Links in the context
+ * of FAIR Signposting. It provides relation-based accessors (e.g. {@link #citeAs()},
+ * {@link #describedBy()}, {@link #linkSet()}) on top of the underlying WebLink model.
  * </p>
  *
+ * <h2>Validation and responsibility</h2>
  * <p>
- * The view is intentionally <strong>non-destructive</strong>:
+ * This view does <em>not</em> perform validation. It is typically created from the output of one or
+ * more {@link SignPostingValidator}s (see {@link SignPostingResult}), but it can also be used with
+ * WebLinks originating from other sources.
+ * </p>
+ *
+ * <h2>Immutability and non-destructive behavior</h2>
+ * <ul>
+ *   <li>The input list is defensively copied.</li>
+ *   <li>The list returned by {@link #webLinks()} is unmodifiable.</li>
+ *   <li>All accessor methods return unmodifiable lists.</li>
+ *   <li>No WebLinks are modified, added, removed, or reordered.</li>
+ * </ul>
+ *
+ * <h2>Null handling contract</h2>
+ * <p>
+ * The provided {@code webLinks} list must not contain {@code null} elements.
+ * This is a strict contract: construction fails fast if any element is {@code null}.
+ * Clients are responsible for sanitizing inputs before creating this view.
+ * </p>
+ *
+ * <h2>Level 1 and Level 2 discovery</h2>
+ * <p>
+ * The view supports:
  * </p>
  * <ul>
- *   <li>All WebLinks supplied to the constructor are retained.</li>
- *   <li>No links are added, removed, or modified.</li>
- *   <li>Validation issues are reported separately via {@link SignPostingResult}.</li>
+ *   <li><strong>Level 1</strong>: typed links conveyed inline (e.g. in HTTP {@code Link} headers).</li>
+ *   <li><strong>Level 2 discovery</strong>: inline links advertising Link Set resources using
+ *       {@code rel=linkset}.</li>
  * </ul>
  *
  * <p>
- * This design allows clients to:
- * </p>
- * <ul>
- *   <li>inspect Signposting relations even in the presence of validation errors,</li>
- *   <li>apply multiple Signposting profiles to the same set of WebLinks, and</li>
- *   <li>defer profile-specific decisions (e.g. dereferencing linksets) to later stages.</li>
- * </ul>
- *
- * <p>
- * The view supports both:
- * </p>
- * <ul>
- *   <li><strong>Level 1 Signposting</strong>, where typed links are provided inline
- *       via HTTP {@code Link} headers, and</li>
- *   <li><strong>Level 2 Signposting discovery</strong>, where inline links may point
- *       to external Link Set resources using {@code rel=linkset}.</li>
- * </ul>
- *
- * <p>
- * {@code SignPostingView} does <em>not</em> dereference link targets or process Link
- * Set contents. Clients are responsible for retrieving and validating any external
- * resources referenced by the returned URIs.
+ * The view does not dereference link targets and does not parse Link Set resources. Clients are
+ * responsible for retrieving Link Sets and parsing them (e.g. via
+ * {@link life.qbic.compass.spi.LinkSetParser} implementations).
  * </p>
  *
- * @param webLinks the list of WebLinks forming the basis of this view
+ * @param webLinks the WebLinks forming the basis of this view (must not be {@code null} and must
+ *                 not contain {@code null} elements)
+ * @author Sven Fillinger
+ * @since 1.0.0
  */
 public record SignPostingView(List<WebLink> webLinks) {
 
+  /**
+   * SignPostingView constructor.
+   *
+   * @param webLinks the WebLinks forming the basis of this view (must not be {@code null} and must
+   *                 not contain {@code null} elements)
+   * @throws NullPointerException in case the webLinks list or one element is {@code null}
+   */
   public SignPostingView {
     Objects.requireNonNull(webLinks);
+    for (int index = 0; index < webLinks.size(); index++) {
+      if (webLinks.get(index) == null) {
+        throw new NullPointerException("webLinks contains null element at index " + index);
+      }
+    }
     webLinks = List.copyOf(webLinks);
   }
 
   /**
-   * Returns all WebLinks that have the relation type parameter with the given value.
+   * Returns all {@link WebLink}s whose relation type list contains the given relation token.
    *
-   * <pre>
-   * {@code
+   * <p>
+   * Matching is performed case-insensitively ({@code equalsIgnoreCase}) for interoperability. The
+   * returned list is unmodifiable.
+   * </p>
+   *
+   * <pre>{@code
    * // Examples:
-   * // for links with 'rel=item'
-   * withRelationType("item")
-   * // for links with 'rel=author'
-   * withRelationType("author")
-   * }
-   * </pre>
+   * view.withRelationType("item");
+   * view.withRelationType("author");
+   * }</pre>
    *
-   * @param type the relation type to search for
-   * @return a list of WebLinks with the given relation type
+   * @param type the relation type token to search for (e.g. {@code "cite-as"})
+   * @return unmodifiable list of WebLinks containing {@code type} in their {@code rel} tokens
+   * @since 1.0.0
    */
   public List<WebLink> withRelationType(String type) {
     return SignPostingView.withRelationType(webLinks, type);
   }
 
   /**
-   * Returns all WebLinks that have the relation type parameter with the given value.
+   * Filters the given links for those containing the provided relation type token.
+   *
    * <p>
-   * The provided WebLink list is not modified but just read. Filtering must rule out potential null
-   * items first.
-   * <p>
-   * The returned list is immutable.
+   * The input list is not modified. {@code null} entries are ignored. The returned list is
+   * unmodifiable.
+   * </p>
    *
    * @param webLinks the WebLinks to filter
-   * @param type     the serialised type of the parameter
-   * @return all WebLinks with the provided type parameter
+   * @param type     the relation type token to match
+   * @return unmodifiable list of matching WebLinks
    */
   private static List<WebLink> withRelationType(List<WebLink> webLinks, String type) {
     return webLinks.stream()
-        .filter(Objects::nonNull)
         .filter(link -> hasRelationType(link, type))
         .toList();
   }
 
   /**
-   * Returns a boolean flag for the presence of a given relation type in a WebLink.
-   * <p>
-   * Relation types in WebLinks are serialised with the parameter 'rel': {@code rel=<type>}.
-   * <p>
-   * The current implementation is <strong>not case-sensitive</strong>.
+   * Returns whether the given WebLink contains the provided relation type token.
    *
-   * @param webLink the WebLink to investigate
-   * @param type    the serialised relation type.
-   * @return true, if the WebLink contains a relation with the provided type
+   * <p>
+   * Relation types are represented by the {@code rel} parameter. Matching is case-insensitive.
+   * </p>
+   *
+   * @param webLink the WebLink to inspect
+   * @param type    the relation type token to match
+   * @return {@code true} if {@code webLink} contains {@code type} as relation token
    */
   private static boolean hasRelationType(WebLink webLink, String type) {
     return webLink.rel().stream()
@@ -114,51 +133,139 @@ public record SignPostingView(List<WebLink> webLinks) {
   }
 
   /**
+   * Returns all WebLinks with relation type {@code rel=author}.
+   *
+   * <p>
+   * In FAIR Signposting, {@code author} commonly identifies an agent related to the scholarly
+   * object (often by persistent identifier, e.g. ORCID or ROR). The returned list is unmodifiable.
+   * </p>
+   *
+   * @return unmodifiable list of {@code author}-typed WebLinks
+   * @since 1.0.0
+   */
+  public List<WebLink> author() {
+    return withRelationType("author");
+  }
+
+  /**
    * Returns all WebLinks with relation type {@code rel=cite-as}.
    *
    * <p>
-   * In Signposting Level 1, this relation identifies a persistent identifier for the scholarly
-   * object.
+   * In FAIR Signposting, {@code cite-as} identifies the preferred persistent identifier for
+   * citation of the scholarly object. The returned list is unmodifiable.
    * </p>
    *
-   * @return a list of {@link WebLink}s for {@code cite-as}-typed links
+   * @return unmodifiable list of {@code cite-as}-typed WebLinks
+   * @since 1.0.0
    */
   public List<WebLink> citeAs() {
-    return withRelationType("cite-as").stream()
-        .toList();
+    return withRelationType("cite-as");
+  }
+
+  /**
+   * Returns all WebLinks with relation type {@code rel=collection}.
+   *
+   * <p>
+   * Used to relate a resource to a collection/landing context. The returned list is unmodifiable.
+   * </p>
+   *
+   * @return unmodifiable list of {@code collection}-typed WebLinks
+   * @since 1.0.0
+   */
+  public List<WebLink> collection() {
+    return withRelationType("collection");
   }
 
   /**
    * Returns all WebLinks with relation type {@code rel=describedby}.
    *
    * <p>
-   * This relation typically points to metadata resources describing the scholarly object.
+   * Typically points to metadata resources describing the scholarly object. The returned list is
+   * unmodifiable.
    * </p>
    *
-   * @return a list of {@link WebLink}s for {@code describedby}-typed links
+   * @return unmodifiable list of {@code describedby}-typed WebLinks
+   * @since 1.0.0
    */
   public List<WebLink> describedBy() {
-    return withRelationType("describedby").stream()
-        .toList();
+    return withRelationType("describedby");
   }
 
   /**
-   * Returns WebLinks with relation type {@code rel=linkset}.
+   * Returns all WebLinks with relation type {@code rel=describes}.
    *
    * <p>
-   * In Signposting Level 2, these typed links identify Linkset resources (<a
-   * href="https://www.rfc-editor.org/rfc/rfc9264.html">RFC 9264</a>) that must be retrieved and
-   * processed separately by client code. Clients can use the provided implementations of the
-   * {@link life.qbic.compass.spi.LinkSetParser} interface, like
-   * {@link life.qbic.compass.parsing.LinkSetInlineParser} or
-   * {@link life.qbic.compass.parsing.LinkSetJsonParser} to get access to the encoded FAIR
-   * Signposting profile information.
+   * Often used by metadata resources to indicate which resource they describe. The returned list is
+   * unmodifiable.
    * </p>
    *
-   * @return a list of {@link WebLink}s identifying Link Set resources
+   * @return unmodifiable list of {@code describes}-typed WebLinks
+   * @since 1.0.0
    */
-  public List<WebLink> linksets() {
-    return withRelationType("linkset").stream()
-        .toList();
+  public List<WebLink> describes() {
+    return withRelationType("describes");
+  }
+
+  /**
+   * Returns all WebLinks with relation type {@code rel=item}.
+   *
+   * <p>
+   * In FAIR Signposting, {@code item} typically points to content resources (e.g. files). The
+   * returned list is unmodifiable.
+   * </p>
+   *
+   * @return unmodifiable list of {@code item}-typed WebLinks
+   * @since 1.0.0
+   */
+  public List<WebLink> item() {
+    return withRelationType("item");
+  }
+
+  /**
+   * Returns all WebLinks with relation type {@code rel=license}.
+   *
+   * <p>
+   * Points to licensing information for the scholarly object or one of its resources. The returned
+   * list is unmodifiable.
+   * </p>
+   *
+   * @return unmodifiable list of {@code license}-typed WebLinks
+   * @since 1.0.0
+   */
+  public List<WebLink> license() {
+    return withRelationType("license");
+  }
+
+  /**
+   * Returns all WebLinks with relation type {@code rel=linkset}.
+   *
+   * <p>
+   * In Level 2 discovery, {@code linkset} advertises an external Link Set resource (RFC 9264).
+   * Compass does not fetch or parse this resource automatically. Clients can retrieve the target
+   * and parse it using implementations of {@link life.qbic.compass.spi.LinkSetParser}, such as
+   * {@link life.qbic.compass.parsing.LinkSetInlineParser} or
+   * {@link life.qbic.compass.parsing.LinkSetJsonParser}. The returned list is unmodifiable.
+   * </p>
+   *
+   * @return unmodifiable list of {@code linkset}-typed WebLinks
+   * @since 1.0.0
+   */
+  public List<WebLink> linkSet() {
+    return withRelationType("linkset");
+  }
+
+  /**
+   * Returns all WebLinks with relation type {@code rel=type}.
+   *
+   * <p>
+   * {@code type} is used to express semantic typing (often schema.org types) for the current
+   * resource. The returned list is unmodifiable.
+   * </p>
+   *
+   * @return unmodifiable list of {@code type}-typed WebLinks
+   * @since 1.0.0
+   */
+  public List<WebLink> type() {
+    return withRelationType("type");
   }
 }

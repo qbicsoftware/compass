@@ -90,10 +90,10 @@ String linkHeader =
 
 // Parse HTTP Link header into WebLink model objects
 WebLinkProcessor webLinkProcessor = new WebLinkProcessor.Builder().build();
-ValidationResult parsingResult = webLinkProcessor.process(linkHeader);
+ValidationResult validationResult = webLinkProcessor.process(linkHeader);
 
 // Parsed WebLinks are now ready for semantic validation
-List<WebLink> webLinks = parsingResult.weblinks();
+List<WebLink> webLinks = validationResult.weblinks();
 ```
 
 At this point, we have a list of parsed WebLinks. In the next step, we let Compass validate and
@@ -104,52 +104,90 @@ according to the FAIR Signposting Level 1 Landing Page recipe.
 
 #### Validating Level 1 with Compass
 
-With the list of WebLinks, we can now use the SignPostingProcessor. The builder will create a processor with the
-`Level1SignPostingValidator` as validator by default. Only a Level 1 Landing Page can be reliably validated, due to the permissive
-specification.
+With a parsed list of WebLink objects, we can now validate and interpret them using Compass.
+
+By default, the SignPostingProcessor is configured with a `Level1SignPostingValidator`.
+Due to the permissive nature of the FAIR Signposting Level 1 specification, only the Landing Page recipe can be validated reliably. 
+Other Level 1 recipes are interpreted semantically but not enforced strictly.
 
 ```java
 
 SignPostingProcessor processor = new SignPostingProcessor.Builder().build();
-SignPostingResult result = processor.process(linksmithResult.weblinks());
+SignPostingResult result = processor.process(webLinks);
 
-// You can investigate the validation findings in the result's issue report
+```
+
+Compass always returns a SignPostingResult, which contains both:
+- a structured **issue report**, and
+- a **semantic view** over the validated WebLinks.
+
+You can inspect the validation findings and decide how strictly to enforce them in your application:
+
+```java
 if (result.issueReport().hasErrors()) {
-  // Throw or investigate, if you desire to protect your downstream process flow
+  // Decide how to handle invalid Signposting in your application
   throw new IllegalStateException("Signposting validation result contains errors");
-}
-
-// The SignPostingView provides some semantic API to interact with the WebLinks
-// in the context of FAIR Signposting
-SignPostingView signPostingView = result.signPostingView();
-
-// For example you can access all "cite-as" typed WebLinks
-for (WebLink link : signPostingView.citeAs()) {
-  System.out.println("Cite as (URI): " + link.target());
-}
-// or authors
-for (WebLink link : signPostingView.withRelationType("author")) {
-  System.out.println("Author is (URI): " + link.target());
-}
-// or linked content resources
-for (WebLink link : signPostingView.withRelationType("item")) {
-  System.out.println("Item is (URI): " + link.target());
-  System.out.println("Item MIME type is: " + link.type().orElse("no type available"));
 }
 ```
 
-That should result in an output like this:
+---
+
+#### Working with the SignPostingView
+
+The returned SignPostingView provides semantic accessors for interacting with WebLinks
+in the context of FAIR Signposting — without requiring you to manually inspect `rel` parameters.
+
+```java
+SignPostingView signPostingView = result.signPostingView();
+```
+
+For example, you can access:
+
+**Cite-as identifiers**
+```java
+for (WebLink link : signPostingView.citeAs()) {
+  System.out.println("Cite as URI: " + link.target());
+}
+```
+
+**Authors**
+
+```java
+for (WebLink link : signPostingView.author()) {
+  System.out.println("Author URI: " + link.target());
+}
+```
+
+**Content resources (items)**
+```java
+for (WebLink link : signPostingView.item()) {
+  System.out.println("Item URI: " + link.target());
+  System.out.println("Item MIME type: " + link.type().orElse("no type available"));
+}
+```
+
+---
+
+### Example output 
+Running the above code against the example HTTP response produces output similar to:
 
 ```bash
 SignPostingView[webLinks=[WebLink[target=https://doi.org/10.5061/dryad.5d23f, params=[WebLinkParameter[name=rel, value=cite-as]]], WebLink[target=https://schema.org/ScholarlyArticle, params=[WebLinkParameter[name=rel, value=type]]], WebLink[target=https://schema.org/AboutPage, params=[WebLinkParameter[name=rel, value=type]]], WebLink[target=https://orcid.org/0000-0002-1825-0097, params=[WebLinkParameter[name=rel, value=author]]], WebLink[target=https://example.org/meta/7507/bibtex, params=[WebLinkParameter[name=rel, value=describedby], WebLinkParameter[name=type, value=application/x-bibtex]]], WebLink[target=https://doi.org/10.5061/dryad.5d23f, params=[WebLinkParameter[name=rel, value=describedby], WebLinkParameter[name=type, value=application/vnd.datacite.datacite+json]]], WebLink[target=https://spdx.org/licenses/CC-BY-4.0, params=[WebLinkParameter[name=rel, value=license]]], WebLink[target=https://example.org/file/7507/1, params=[WebLinkParameter[name=rel, value=item], WebLinkParameter[name=type, value=application/pdf]]], WebLink[target=https://example.org/file/7507/2, params=[WebLinkParameter[name=rel, value=item], WebLinkParameter[name=type, value=text/csv]]], WebLink[target=https://gitmodo.io/johnd/ct.zip, params=[WebLinkParameter[name=rel, value=item], WebLinkParameter[name=type, value=application/zip]]]]]
-Cite as (URI): https://doi.org/10.5061/dryad.5d23f
-Author is (URI): https://orcid.org/0000-0002-1825-0097
-Item is (URI): https://example.org/file/7507/1
-Item type is: application/pdf
-Item is (URI): https://example.org/file/7507/2
-Item type is: text/csv
-Item is (URI): https://gitmodo.io/johnd/ct.zip
-Item type is: application/zip
+Cite as URI: https://doi.org/10.5061/dryad.5d23f
+Author URI: https://orcid.org/0000-0002-1825-0097
+Item URI: https://example.org/file/7507/1
+Item MIME type: application/pdf
+Item URI: https://example.org/file/7507/2
+Item MIME type: text/csv
+Item URI: https://gitmodo.io/johnd/ct.zip
+Item MIME type: application/zip
 ```
 
-Awesome, you can now use this machine-actionable result and include it in your application!
+At this point, you have transformed a raw HTTP Link header into a machine-actionable,
+**semantically validated FAIR Signposting view**:
+- RFC 8288 model constraints are checked defensively
+- FAIR Signposting Level 1 semantics are interpreted consistently
+- Your application logic can work with **typed relations**, not string parsing
+
+From here, you can safely integrate the result into downstream workflows such as
+metadata harvesting, content discovery, or FAIR compliance checks.

@@ -4,6 +4,7 @@ package life.qbic.compass.model
 import life.qbic.linksmith.model.WebLink
 import life.qbic.linksmith.model.WebLinkParameter
 import spock.lang.Specification
+import spock.lang.Unroll
 
 /**
  * Specification for {@link SignPostingView}.
@@ -190,7 +191,7 @@ class SignPostingViewSpec extends Specification {
         ])
 
         when:
-        def linksetUris = view.linksets()
+        def linksetUris = view.linkSet()
 
         then:
         linksetUris as Set == [
@@ -213,7 +214,7 @@ class SignPostingViewSpec extends Specification {
         ])
 
         expect:
-        view.linksets().isEmpty()
+        view.linkSet().isEmpty()
     }
 
     // ------------------------------------------------------------------------
@@ -238,13 +239,93 @@ class SignPostingViewSpec extends Specification {
         view.describedBy().contains(weblink("https://example.org/meta/datacite.xml", [rel("describedby")]))
 
         and: "Level 2 discovery helper"
-        view.linksets().contains(weblink("https://example.org/linkset.json", [
+        view.linkSet().contains(weblink("https://example.org/linkset.json", [
                 rel("linkset"), type("application/linkset+json")
         ]))
 
         and: "rel-based helper is consistent"
         view.withRelationType("item")*.target() == [URI.create("https://example.org/file1")]
         view.withRelationType("linkset")*.target() == [URI.create("https://example.org/linkset.json")]
+    }
+
+    // ------------------------------------------------------------------------
+    // Semantic API coverage: typed accessor presence + equivalence to withRelationType
+    // ------------------------------------------------------------------------
+
+    @Unroll
+    def "semantic API: SignPostingView exposes typed accessor '#accessor' for rel='#relToken'"() {
+        given:
+        def view = new SignPostingView([])
+
+        expect:
+        // Ensures method exists (contract/coverage test)
+        view.metaClass.respondsTo(view, accessor).size() > 0
+
+        where:
+        relToken      | accessor
+        "cite-as"     | "citeAs"
+        "describedby" | "describedBy"
+        "linkset"     | "linkSet"
+
+        // These are very useful for FAIR Signposting semantics; enable once implemented:
+        "author"      | "author"
+        "license"     | "license"
+        "item"        | "item"      // or "item" if you prefer
+        "type"        | "type"      // or "type"
+        // Level 2 recipe relations; enable once implemented:
+        "collection"  | "collection" // or "collections"
+        "describes"   | "describes"
+    }
+
+    @Unroll
+    def "semantic API: typed accessor '#accessor' returns exactly the same links as withRelationType('#relToken')"() {
+        given:
+        def matching1 = weblink("https://example.org/a/${relToken}", [rel(relToken)])
+        def matching2 = weblink("https://example.org/b/${relToken}", [rel(relToken.toUpperCase())]) // case variant
+        def other = weblink("https://example.org/other", [rel("not-${relToken}")])
+
+        and:
+        def view = new SignPostingView([matching1, matching2, other])
+
+        when:
+        def typed = callTypedAccessor(view, accessor)
+        def generic = view.withRelationType(relToken)
+
+        then:
+        // Same elements and same order (both filter original list)
+        typed == generic
+
+        and:
+        typed.contains(matching1)
+        typed.contains(matching2)
+        !typed.contains(other)
+
+        where:
+        relToken      | accessor
+        "cite-as"     | "citeAs"
+        "describedby" | "describedBy"
+        "linkset"     | "linkSet"
+
+        // Enable once implemented:
+        "author"      | "author"
+        "license"     | "license"
+        "item"        | "item"
+        "type"        | "type"
+        "collection"  | "collection"
+        "describes"   | "describes"
+    }
+
+    /**
+     * Invokes a no-arg typed accessor via Groovy meta programming.
+     * Fails with a good message if the accessor is missing.
+     */
+    private static List<WebLink> callTypedAccessor(SignPostingView view, String accessorName) {
+        assert view.metaClass.respondsTo(view, accessorName).size() > 0:
+                "SignPostingView is missing typed accessor method '${accessorName}()'"
+
+        def result = view."$accessorName"()
+        assert result instanceof List
+        return (List<WebLink>) result
     }
 
     // ------------------------------------------------------------------------
