@@ -1,12 +1,14 @@
 <div align="center">
 
 # Compass
-Java library for FAIR Signposting validation of RFC 8288 Web Links. 
+**Java library for FAIR Signposting validation of RFC 8288 Web Links.**
 
 [![Build Maven Package](https://github.com/qbicsoftware/compass/actions/workflows/build_package.yml/badge.svg)](https://github.com/qbicsoftware/compass/actions/workflows/build_package.yml)
 [![Run Maven Tests](https://github.com/qbicsoftware/compass/actions/workflows/run_tests.yml/badge.svg)](https://github.com/qbicsoftware/compass/actions/workflows/run_tests.yml)
 [![CodeQL](https://github.com/qbicsoftware/compass/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/qbicsoftware/compass/actions/workflows/codeql-analysis.yml)
+
 [![release](https://img.shields.io/github/v/release/qbicsoftware/compass?include_prereleases)](https://github.com/qbicsoftware/compass/releases)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18327777.svg)](https://doi.org/10.5281/zenodo.18327777)
 [![license](https://img.shields.io/github/license/qbicsoftware/compass)](https://github.com/qbicsoftware/compass/blob/main/LICENSE)
 
 [![codecov](https://codecov.io/github/qbicsoftware/compass/graph/badge.svg?token=DAR8MZLF4R)](https://codecov.io/github/qbicsoftware/compass)
