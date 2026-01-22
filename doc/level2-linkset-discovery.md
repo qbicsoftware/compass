@@ -162,9 +162,11 @@ Save the following JSON as a file next to this documentation, for example:
   ]
 }
 ```
+
 </details>
 
 This Link Set contains:
+
 - 1x Landing Page recipe anchor: https://example.org/landing/123
 - 1x Metadata Resource (rel="describedby")
 - 2x Content Resources (rel="item")
@@ -190,6 +192,7 @@ Currently, this is provided by:
 - `Level2RecipeValidator`
 
 Other Level 2 validators may:
+
 - validate structural or normative constraints,
 - report issues,
 - or enforce profile-specific rules  
@@ -215,3 +218,23 @@ SignPostingResult result = processor.process(linksetLinks);
 Level2LinksetView view = Optional.ofNullable(result.level2LinksetView())
     .orElseThrow(() -> new IllegalStateException("No Level2LinksetView produced"));
 ```
+
+This design allows Compass to support:
+
+- lightweight Level 2 validation without interpretation,
+- multiple independent validation strategies,
+- future extensions that introduce new view types or recipes.
+
+### Why the Link Set view is optional
+
+FAIR Signposting Level 2 covers multiple concerns:
+- discovery of Link Sets,
+- validation of Link Set structure,
+- interpretation of complete Signposting recipes.
+
+Compass deliberately separates these concerns.
+A `Level2LinksetView` is only constructed when a validator explicitly
+chooses to interpret a full recipe.
+
+This avoids forcing all validators into a single representation
+and allows clients to extract only the information they need.
