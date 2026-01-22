@@ -1,6 +1,6 @@
 package life.qbic.compass.spi;
 
-import java.util.Arrays;
+import java.util.BitSet;
 import java.util.List;
 import java.util.Objects;
 import life.qbic.linksmith.model.WebLink;
@@ -10,7 +10,7 @@ import life.qbic.linksmith.spi.WebLinkValidator.IssueReport;
  * Contract for validating {@link WebLink} objects at the <em>model level</em>.
  *
  * <p><strong>Audience:</strong> Maintainers of the Compass library.
- * This interface is internal to the validation layer and is not intended as a public extension
+ * This interface is part of the internal validation layer and is not intended as a public extension
  * point for end users.</p>
  *
  * <h2>Purpose</h2>
@@ -36,8 +36,8 @@ import life.qbic.linksmith.spi.WebLinkValidator.IssueReport;
  * </p>
  * <ul>
  *   <li>Parsers produce {@link WebLink} instances (possibly permissive).</li>
- *   <li>{@code WebLinkModelValidator}s ensure the model obeys core Web Linking rules
- *       (e.g. RFC&nbsp;8288 invariants).</li>
+ *   <li>{@code WebLinkModelValidator}s ensure the model obeys core Web Linking
+ *       invariants (e.g. RFC&nbsp;8288 constraints).</li>
  *   <li>Signposting validators operate on a trusted model to apply FAIR-specific semantics.</li>
  * </ul>
  *
@@ -84,45 +84,58 @@ public interface WebLinkModelValidator {
    *
    * <p>
    * Implementations must inspect each element independently and accumulate all detected issues into
-   * the returned {@link IssueReport}. Validation must not stop after the first failure.
+   * the returned {@link ModelValidationResult}. Validation must not stop after the first failure.
    * </p>
    *
    * @param webLinks the list of {@link WebLink} instances to validate (must not be {@code null})
-   * @return an {@link ModelValidationResult} containing all detected issues and the indices of
-   * weblinks with recorded ERROR
+   * @return a {@link ModelValidationResult} containing all detected issues and information about
+   * which input elements are considered blocking
    * @throws NullPointerException if {@code webLinks} is {@code null}
    */
   ModelValidationResult validate(List<WebLink> webLinks);
 
-
-  record ModelValidationResult(IssueReport issueReport, boolean[] blockingLinkByIndex) {
+  /**
+   * Result object returned by {@link WebLinkModelValidator} implementations.
+   *
+   * <p>
+   * The result consists of:
+   * </p>
+   * <ul>
+   *   <li>an {@link IssueReport} containing all detected validation issues, and</li>
+   *   <li>a {@link BitSet} indicating which input indices correspond to
+   *       <em>blocking</em> model violations.</li>
+   * </ul>
+   *
+   * <p>
+   * A blocking index represents a {@link WebLink} that must not be used for
+   * downstream semantic processing (e.g. Signposting validation).
+   * </p>
+   *
+   * <p>
+   * This record is <strong>immutable</strong>:
+   * </p>
+   * <ul>
+   *   <li>The contained {@link IssueReport} is defensively copied.</li>
+   *   <li>The {@link BitSet} is defensively copied using {@link BitSet#clone()}.</li>
+   * </ul>
+   *
+   * <p>
+   * Modifying the original {@link IssueReport} or {@link BitSet} passed to the
+   * constructor has no effect on the created result instance.
+   * </p>
+   *
+   * @param issueReport     all detected validation issues
+   * @param blockingIndices bit set marking indices of blocking WebLinks
+   * @since 1.0.0
+   */
+  record ModelValidationResult(IssueReport issueReport, BitSet blockingIndices) {
 
     public ModelValidationResult {
+      Objects.requireNonNull(issueReport, "issueReport");
+      Objects.requireNonNull(blockingIndices, "blockingIndices");
+
       issueReport = new IssueReport(List.copyOf(issueReport.issues()));
-      blockingLinkByIndex = Arrays.copyOf(blockingLinkByIndex, blockingLinkByIndex.length);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (o == null || getClass() != o.getClass()) {
-        return false;
-      }
-      ModelValidationResult that = (ModelValidationResult) o;
-      return Objects.equals(issueReport, that.issueReport) && Objects.deepEquals(
-          blockingLinkByIndex, that.blockingLinkByIndex);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(issueReport, Arrays.hashCode(blockingLinkByIndex));
-    }
-
-    @Override
-    public String toString() {
-      return "ModelValidationResult{" +
-          "issueReport=" + issueReport +
-          ", blockingLinkByIndex=" + Arrays.toString(blockingLinkByIndex) +
-          '}';
+      blockingIndices = (BitSet) blockingIndices.clone();
     }
   }
 }

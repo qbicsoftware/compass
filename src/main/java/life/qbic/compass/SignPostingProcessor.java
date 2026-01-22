@@ -242,7 +242,7 @@ public final class SignPostingProcessor {
     var result = modelValidator.validate(webLinks);
     var sanitizedLinks = new ArrayList<WebLink>();
     for (int index = 0; index < webLinks.size(); index++) {
-      if (!result.blockingLinkByIndex()[index]) {
+      if (!result.blockingIndices().get(index)) {
         sanitizedLinks.add(webLinks.get(index));
       }
     }
