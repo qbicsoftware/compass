@@ -1,12 +1,21 @@
 cff-version: 1.2.0
 
-title: "Compass — Java library for FAIR Signposting validation of RFC 8288 Web Links (alpha)"
+title: "Compass: FAIR Signposting validation for RFC 8288 Web Links (Java, alpha)"
+
+abstract: >-
+  Compass is a Java library for validating and interpreting FAIR Signposting
+  based on RFC 8288 Web Links. It provides defensive Web Link model validation,
+  validation of FAIR Signposting Level 1 and Level 2 recipes, semantic accessors
+  for Signposting relations, and parsing support for RFC 9264 Link Sets.
+  Compass operates entirely in memory, performs no network requests, and is
+  designed to integrate with existing HTTP and metadata processing pipelines.
 
 message: >-
   This software is in an early (alpha) stage and under active development.
   APIs and behavior may change without notice.
   You may cite this version to describe the software used in your work.
-  For long-term or archival references, consider citing a later stable release when available.
+  For long-term or archival references, consider citing a later stable release
+  when available.
 
 version: "1.0.0-alpha.2"
 date-released: "2026-01-20"
@@ -23,7 +32,7 @@ license: "AGPL-3.0-only"
 
 preferred-citation:
   type: software
-  title: "Compass — Java library for FAIR Signposting validation of RFC 8288 Web Links"
+  title: "Compass: FAIR Signposting validation for RFC 8288 Web Links"
   version: "1.0.0-alpha.2"
   authors:
     - family-names: Fillinger
@@ -31,3 +40,18 @@ preferred-citation:
       orcid: "https://orcid.org/0000-0001-8835-2219"
   doi: 10.5281/zenodo.18327776
   year: 2026
+
+keywords:
+  - FAIR
+  - FAIR Signposting
+  - signposting
+  - scholarly communication
+  - research data
+  - RFC 8288
+  - Web Linking
+  - HTTP Link header
+  - RFC 9264
+  - Link Set
+  - metadata
+  - validation
+  - Java
