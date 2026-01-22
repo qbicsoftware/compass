@@ -122,7 +122,7 @@ FAIR Signposting validation scenarios step by step:
 
 - FAIR Signposting **Level 1** validation: [`doc/level1-basic-validation.md`](doc/level1-basic-validation.md)
 
-- FAIR Signposting **Level 2 discovery** using Link Sets (RFC 9264)
+- FAIR Signposting **Level 2 discovery** using Link Sets (RFC 9264): [`doc/level2-discovery.md`](doc/level2-linkset-discovery.md)
 
 - Handling **multiple Link Sets** with different aggregation strategies
 
