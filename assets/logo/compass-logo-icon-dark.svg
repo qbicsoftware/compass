@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="10.05326mm"
+   height="10.05324mm"
+   viewBox="0 0 10.05326 10.05324"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.4.2 (ebf0e940, 2025-05-08)"
+   sodipodi:docname="compass-logo-icon-dark.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#505050"
+     inkscape:document-units="mm"
+     inkscape:zoom="25.002305"
+     inkscape:cx="19.018247"
+     inkscape:cy="18.998248"
+     inkscape:window-width="1920"
+     inkscape:window-height="1147"
+     inkscape:window-x="0"
+     inkscape:window-y="25"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs1" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-102.39375,-143.40417)">
+    <path
+       id="path1-8"
+       style="fill:#f7f7f7;fill-opacity:1;stroke-width:0.164555;stroke-linecap:square;stroke-linejoin:round;stroke-opacity:0.964706;paint-order:stroke fill markers"
+       d="m 112.44701,148.43081 a 5.0265978,5.0265978 0 0 1 -5.0266,5.0266 5.0265978,5.0265978 0 0 1 -5.0266,-5.0266 5.0265978,5.0265978 0 0 1 5.0266,-5.02659 5.0265978,5.0265978 0 0 1 5.0266,5.02659 z" />
+    <path
+       id="path3"
+       style="fill:#2b2b2b;stroke-width:0.164737;stroke-linecap:square;stroke-linejoin:round;stroke-opacity:0.964706;paint-order:stroke fill markers"
+       inkscape:transform-center-x="-0.33208836"
+       inkscape:transform-center-y="0.090574766"
+       d="m 110.23332,151.05156 -2.78438,-1.81389 -2.64928,2.00605 1.81389,-2.78437 -2.00605,-2.64928 2.78437,1.81389 2.64928,-2.00606 -1.81389,2.78438 z" />
+    <path
+       id="path2-4"
+       style="fill:#bd09d6;fill-opacity:1;stroke-width:0.215393;stroke-linecap:square;stroke-linejoin:round;stroke-opacity:0.964706;paint-order:stroke fill markers"
+       inkscape:transform-center-x="0.084242491"
+       inkscape:transform-center-y="5.1077755"
+       d="m 107.76578,148.18243 a 0.59375528,0.59375528 0 0 0 -0.59377,0.59377 0.59375528,0.59375528 0 0 0 0.59377,0.59377 0.59375528,0.59375528 0 0 0 0.59378,-0.59377 0.59375528,0.59375528 0 0 0 -0.59378,-0.59377 z" />
+    <path
+       id="path11"
+       style="fill:#bd09d6;fill-opacity:1;stroke-width:0.215393;stroke-linecap:square;stroke-linejoin:round;stroke-opacity:0.964706;paint-order:stroke fill markers"
+       inkscape:transform-center-x="0.084242491"
+       inkscape:transform-center-y="5.1077755"
+       d="m 107.37957,143.40417 -0.78329,4.21581 -4.20253,0.85174 4.21581,0.78329 0.85174,4.2024 0.7833,-4.21569 4.2024,-0.85173 -4.21569,-0.7833 z m 0.0409,4.43291 c 0.32794,-10e-6 0.59378,0.26584 0.59377,0.59377 1e-5,0.32794 -0.26583,0.59378 -0.59377,0.59377 -0.32793,1e-5 -0.59378,-0.26583 -0.59377,-0.59377 -1e-5,-0.32793 0.26584,-0.59378 0.59377,-0.59377 z"
+       sodipodi:nodetypes="cccccccccccccc" />
+  </g>
+</svg>
