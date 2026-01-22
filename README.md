@@ -182,4 +182,22 @@ Together, they form a clean separation of concerns:
 - *Linksmith*: “Is this syntactically valid Web Linking?”
 - *Compass*: “Is this WebLink model sound, and what does it mean for FAIR Signposting?”
 
+---
 
+## Contributing
+
+Compass is an open-source research software project and welcomes contributions
+from the community.
+
+You can contribute by:
+- reporting bugs or unexpected behavior,
+- improving documentation or examples,
+- proposing new validation rules or features,
+- submitting code improvements or fixes.
+
+Please read the
+[Contribution Guidelines](CONTRIBUTING.md)
+before opening an issue or pull request.
+
+All contributions are reviewed, and design discussions are encouraged —
+especially for changes affecting validation semantics or public APIs.
