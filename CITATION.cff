@@ -26,6 +26,9 @@ authors:
   - family-names: Fillinger
     given-names: Sven
     orcid: "https://orcid.org/0000-0001-8835-2219"
+  - family-names: Nahnsen
+    given-names: Sven
+    orcid: https://orcid.org/0000-0002-4375-0691
 
 repository-code: "https://github.com/qbicsoftware/compass"
 license: "AGPL-3.0-only"
