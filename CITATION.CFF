@@ -31,3 +31,18 @@ preferred-citation:
       orcid: "https://orcid.org/0000-0001-8835-2219"
   doi: 10.5281/zenodo.18327776
   year: 2026
+
+keywords:
+  - FAIR
+  - FAIR Signposting
+  - signposting
+  - scholarly communication
+  - research data
+  - RFC 8288
+  - Web Linking
+  - HTTP Link header
+  - RFC 9264
+  - Link Set
+  - metadata
+  - validation
+  - Java
