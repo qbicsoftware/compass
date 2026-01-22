@@ -2,6 +2,7 @@ package life.qbic.compass.validation;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
@@ -147,7 +148,17 @@ class Rfc8288ModelValidator implements WebLinkModelValidator {
       }
       validate(currentLink, issueSink);
     }
-    return new ModelValidationResult(new IssueReport(issueSink.issues), issueSink.blockingLinkIndices);
+    return new ModelValidationResult(new IssueReport(issueSink.issues), toBitSet(issueSink.blockingLinkIndices));
+  }
+
+  private static BitSet toBitSet(boolean[] flags) {
+    BitSet bitset = new BitSet(flags.length);
+    for (int index = 0; index < flags.length; index++) {
+      if (flags[index]) {
+        bitset.set(index);
+      }
+    }
+    return bitset;
   }
 
   /**
