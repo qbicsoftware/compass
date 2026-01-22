@@ -1,5 +1,7 @@
 cff-version: 1.2.0
 
+type: software
+
 title: "Compass: FAIR Signposting validation for RFC 8288 Web Links (Java, alpha)"
 
 abstract: >-
@@ -21,29 +23,57 @@ version: "1.0.0-alpha.2"
 date-released: "2026-01-20"
 
 doi: 10.5281/zenodo.18327776
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.18327776
+
+repository-code: "https://github.com/qbicsoftware/compass"
+url: "https://github.com/qbicsoftware/compass"
+license: "AGPL-3.0-only"
 
 authors:
   - family-names: Fillinger
     given-names: Sven
     orcid: "https://orcid.org/0000-0001-8835-2219"
+    affiliation: "Quantitative Biology Center (QBiC), University of Tübingen"
   - family-names: Nahnsen
     given-names: Sven
-    orcid: https://orcid.org/0000-0002-4375-0691
+    orcid: "https://orcid.org/0000-0002-4375-0691"
+    affiliation: "Quantitative Biology Center (QBiC), University of Tübingen"
 
-repository-code: "https://github.com/qbicsoftware/compass"
-license: "AGPL-3.0-only"
+contributors:
+  - family-names: Fillinger
+    given-names: Sven
+    orcid: "https://orcid.org/0000-0001-8835-2219"
+    affiliation: "Quantitative Biology Center (QBiC), University of Tübingen"
+    roles:
+      - conceptualization
+      - validation
+      - maintenance
+  - family-names: Nahnsen
+    given-names: Sven
+    orcid: "https://orcid.org/0000-0002-4375-0691"
+    affiliation: "Quantitative Biology Center (QBiC), University of Tübingen"
+    roles:
+      - supervision
+      - resources
 
 preferred-citation:
   type: software
   title: "Compass: FAIR Signposting validation for RFC 8288 Web Links"
   version: "1.0.0-alpha.2"
+  date-released: "2026-01-20"
   authors:
     - family-names: Fillinger
       given-names: Sven
       orcid: "https://orcid.org/0000-0001-8835-2219"
+      affiliation: "Quantitative Biology Center (QBiC), University of Tübingen"
+      affiliation-identifier: "https://ror.org/00v34f693"
     - family-names: Nahnsen
       given-names: Sven
-      orcid: https://orcid.org/0000-0002-4375-0691
+      orcid: "https://orcid.org/0000-0002-4375-0691"
+      affiliation: "Quantitative Biology Center (QBiC), University of Tübingen"
+      affiliation-identifier: "https://ror.org/00v34f693"
   doi: 10.5281/zenodo.18327776
   year: 2026
 
