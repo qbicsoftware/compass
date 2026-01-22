@@ -1,8 +1,8 @@
 <div align="center">
 
 <p align="center">
-  <img src="./assets/logo/compass-logo-full-light.svg#gh-light-mode-only" alt="Compass logo" width="200">
-  <img src="./assets/logo/compass-logo-full-dark.svg#gh-dark-mode-only" alt="Compass logo" width="200">
+  <img src="./assets/logo/compass-logo-full-light.svg#gh-light-mode-only" alt="Compass logo" width="300">
+  <img src="./assets/logo/compass-logo-full-dark.svg#gh-dark-mode-only" alt="Compass logo" width="300">
 </p>
 
 **Java library for FAIR Signposting validation of RFC 8288 Web Links.**
