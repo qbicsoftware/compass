@@ -18,6 +18,8 @@ jobs:
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
+          ref: ${{ github.ref_name }}
+          persist-credentials: true
       - name: Set up JDK 21
         uses: actions/setup-java@v5
         with:
@@ -68,7 +70,7 @@ jobs:
             echo "No changes to commit."
           else
             git commit -m "Release ${{ github.event.inputs.versionTag }}"
-            git push
+            git push origin HEAD:main
           fi
 
       - name: Create and push git tag
@@ -79,6 +81,13 @@ jobs:
 
       - name: Build with Maven
         run: mvn -B package -Prelease --file pom.xml
+
+      - name: Publish artefact to Maven Central
+        run: mvn --quiet --settings $GITHUB_WORKSPACE/.github.settings.xml -Prelease -DskipTests deploy
+        env:
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          SONATYPE_CENTRAL_USERNAME: ${{ secrets.SONATYPE_CENTRAL_USERNAME }}
+          SONATYPE_CENTRAL_PASSWORD: ${{ secrets.SONATYPE_CENTRAL_PASSWORD }}
 
       - name: Create Release Notes
         if: ${{ !startsWith(github.ref, 'refs/tags/')
@@ -114,11 +123,3 @@ jobs:
         uses: actions/attest-build-provenance@v1
         with:
           subject-path: "**/target/*.jar"
-
-      - name: Publish artefact to Maven Central
-        run: mvn --quiet --settings $GITHUB_WORKSPACE/.github.settings.xml -Prelease -DskipTests deploy
-        env:
-          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-          SONATYPE_CENTRAL_USERNAME: ${{ secrets.SONATYPE_CENTRAL_USERNAME }}
-          SONATYPE_CENTRAL_PASSWORD: ${{ secrets.SONATYPE_CENTRAL_PASSWORD }}
-
