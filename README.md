@@ -201,3 +201,14 @@ before opening an issue or pull request.
 
 All contributions are reviewed, and design discussions are encouraged —
 especially for changes affecting validation semantics or public APIs.
+
+## Acknowledgements
+
+Compass implements the community standards behind FAIR Signposting and Web Linking.
+
+- FAIR Signposting specification: https://signposting.org/FAIR/
+- RFC 8288 — Web Linking: https://datatracker.ietf.org/doc/html/rfc8288
+- RFC 9264 — Linkset: https://www.rfc-editor.org/rfc/rfc9264.html
+
+We thank the authors and contributors of these specifications for their work.
+Compass is an independent implementation and is not affiliated with or endorsed by the specification authors.
