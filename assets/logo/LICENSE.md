@@ -1,9 +1,10 @@
 # Compass Logo and Icon License
 
-Copyright © 2026 Sven Fillinger
+Copyright © 2026 Sven Fillinger and Shraddha Pawar
 
 Logo and icon design by:
 - Sven Fillinger (sven.fillinger@uni-tuebingen.de)
+- Shraddha Pawar (shraddha-prakash.pawar@qbic.uni-tuebingen.de)
 
 ---
 
