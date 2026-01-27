@@ -184,6 +184,18 @@ Together, they form a clean separation of concerns:
 
 ---
 
+## Benchmark: A2A FAIR Signposting (HTTP) — Compass validation runner
+
+To continuously assess Compass’ validator behavior on real-world FAIR Signposting examples, we maintain an **offline, apple-to-apple benchmark runner** based on the **A2A FAIR Signposting HTTP scenarios**.
+
+The runner replays harvested HTTP header fixtures (primarily RFC 8288 `Link` headers), converts them into the **WebLink model**, and validates them with Compass against scenario-specific expectations (relations and expected issues). This makes it easy to reproduce behavior across versions and detect regressions.
+
+**Scope note:** The benchmark currently covers **HTTP scenarios only**. Inline HTML signposting is intentionally not included yet (that would mainly benchmark HTML parsing, not Compass’ WebLink validation). Network-based behavior (dereferencing, conneg, remote Link Set fetching) is also out of scope.
+
+Benchmark runner repository: **https://github.com/qbicsoftware/compass-a2a-runner**
+
+---
+
 ## Contributing
 
 Compass is an open-source research software project and welcomes contributions
