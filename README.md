@@ -99,7 +99,7 @@ ValidationResult result = webLinkProcessor.process(rawHeader);
 SignPostingProcessor processor = new SignPostingProcessor.Builder().build();
 SignPostingResult signPostResult = processor.process(result.weblinks());
 
-if(signPostResult.containsIssues()){
+if(signPostResult.hasIssues()){
     // Retrieve the report
     var report = result.report();
     // Investigate the report 
