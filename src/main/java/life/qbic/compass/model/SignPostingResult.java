@@ -1,5 +1,6 @@
 package life.qbic.compass.model;
 
+import java.util.Objects;
 import life.qbic.linksmith.model.WebLink;
 import life.qbic.linksmith.spi.WebLinkValidator.IssueReport;
 
@@ -51,6 +52,13 @@ import life.qbic.linksmith.spi.WebLinkValidator.IssueReport;
  *   <li>compose validation results in higher-level workflows.</li>
  * </ul>
  *
+ * <h2>Null-handling and optional Level 2 view</h2>
+ * <p>
+ * {@link #level2LinksetView()} may be {@code null}. This is intentional: not every validation step
+ * constructs a Level 2 interpretation. Use {@link #hasLinkSetView()} to check for presence, or wrap it
+ * using {@code Optional.ofNullable(result.level2LinksetView())}.
+ * </p>
+ *
  * @param signPostingView   a read-only view on the validated weblinks
  * @param issueReport       an aggregated report of all recoded issues during validation
  * @param level2LinksetView a Signposting Level 2 compliant view semantics in case the validator
@@ -64,6 +72,47 @@ public record SignPostingResult(
     IssueReport issueReport,
     Level2LinksetView level2LinksetView) {
 
+  public SignPostingResult {
+    Objects.requireNonNull(signPostingView);
+    Objects.requireNonNull(issueReport);
+  }
+
+  /**
+   * Creates a result without a Level 2 Link Set view.
+   *
+   * <p>
+   * Use this factory when validation did not (or must not) produce a {@link Level2LinksetView}.
+   * The returned result will have {@link #level2LinksetView()} set to {@code null}.
+   * </p>
+   *
+   * @param signPostingView a read-only view on the validated weblinks (never {@code null})
+   * @param issueReport     an aggregated report of all recorded issues during validation (never {@code null})
+   * @return a {@code SignPostingResult} with no Level 2 view
+   * @since 1.0.0
+   */
+  public static SignPostingResult withoutLinksetView(SignPostingView signPostingView, IssueReport issueReport) {
+    return new SignPostingResult(signPostingView, issueReport, null);
+  }
+
+  /**
+   * Creates a result with a non-null Level 2 Link Set view.
+   *
+   * @param signPostingView   a read-only view on the validated weblinks (never {@code null})
+   * @param issueReport       an aggregated report of all recorded issues during validation (never {@code null})
+   * @param level2LinksetView a Level 2 interpretation view (must not be {@code null})
+   * @return a {@code SignPostingResult} with a Level 2 view attached
+   * @throws NullPointerException if {@code level2LinksetView} is {@code null}
+   * @since 1.0.0
+   */
+  public static SignPostingResult withLinksetView(
+      SignPostingView signPostingView,
+      IssueReport issueReport,
+      Level2LinksetView level2LinksetView
+  ) {
+    Objects.requireNonNull(level2LinksetView, "level2LinksetView");
+    return new SignPostingResult(signPostingView, issueReport, level2LinksetView);
+  }
+
   /**
    * Convenience method for aggregators or filters to check, if the current SignPosting result
    * contains a linkset view or not.
@@ -73,4 +122,35 @@ public record SignPostingResult(
   public boolean hasLinkSetView() {
     return level2LinksetView != null;
   }
+
+  /**
+   * Convenience method to check if any issues (warnings or errors) were recorded.
+   *
+   * @return true if the {@link #issueReport()} contains any issues
+   * @since 1.0.0
+   */
+  public boolean hasIssues() {
+    return !issueReport.issues().isEmpty();
+  }
+
+  /**
+   * Convenience method to check if any errors were recorded.
+   *
+   * @return true if the {@link #issueReport()} contains errors
+   * @since 1.0.0
+   */
+  public boolean hasErrors() {
+    return issueReport.hasErrors();
+  }
+
+  /**
+   * Convenience method to check if any warnings were recorded.
+   *
+   * @return true if the {@link #issueReport()} contains warnings
+   * @since 1.0.0
+   */
+  public boolean hasWarnings() {
+    return issueReport.hasWarnings();
+  }
+
 }
