@@ -80,7 +80,13 @@ jobs:
           git push origin "${TAG}"
 
       - name: Build with Maven
-        run: mvn -B package -Prelease --file pom.xml
+        run: mvn -B verify -Prelease --file pom.xml
+
+      # Generate provenance (SLSA attestation) for all JARs
+      - name: Generate SLSA build provenance
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-path: "**/target/*.jar"
 
       - name: Publish artefact to Maven Central
         run: mvn --quiet --settings $GITHUB_WORKSPACE/.github.settings.xml -Prelease -DskipTests deploy
@@ -117,9 +123,3 @@ jobs:
               generate_release_notes: true,
               prerelease: true
             });
-
-      # Generate provenance (SLSA attestation) for all JARs
-      - name: Generate SLSA build provenance
-        uses: actions/attest-build-provenance@v1
-        with:
-          subject-path: "**/target/*.jar"
