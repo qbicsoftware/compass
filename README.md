@@ -14,7 +14,7 @@
 [![release](https://img.shields.io/github/v/release/qbicsoftware/compass?include_prereleases)](https://github.com/qbicsoftware/compass/releases)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18327777.svg)](https://doi.org/10.5281/zenodo.18327777)
 [![license](https://img.shields.io/github/license/qbicsoftware/compass)](https://github.com/qbicsoftware/compass/blob/main/LICENSE)
-[![HiRSE Code Promo Badge](https://img.shields.io/badge/Promo-8db427?label=HiRSE&labelColor=005aa0&link=https%3A%2F%2Fgo.fzj.de%2FCodePromo)]( https://www.fz-juelich.de/en/rse/the_latest/weve-reached-100-codes-spotlight-on-german-research-software-through-the-hirse-code-promotion-initiative)
+[![HiRSE Code Promo Badge](https://img.shields.io/badge/Promo-8db427?label=HiRSE&labelColor=005aa0&link=https%3A%2F%2Fgo.fzj.de%2FCodePromo)](https://go.fzj.de/CodePromo)
 
 [![codecov](https://codecov.io/github/qbicsoftware/compass/graph/badge.svg?token=DAR8MZLF4R)](https://codecov.io/github/qbicsoftware/compass)
 [![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=qbicsoftware_compass&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=qbicsoftware_compass)
